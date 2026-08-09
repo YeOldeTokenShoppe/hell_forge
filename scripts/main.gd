@@ -32,6 +32,7 @@ var last_checkpoint: float = 0.0
 var _respawn_age: float = 1e9
 var _orbit_yaw: float = 0.0
 var _was_walking: bool = false
+var _spawn_node: Node3D = null
 var run_time: float = 0.0
 var finished: bool = false
 var _msg_timer: float = 0.0
@@ -43,6 +44,10 @@ func _ready() -> void:
 	_player.route = $RoutePath
 	_player.died.connect(_on_player_died)
 	_player.reset_at(0.0)
+	# an Empty named "Spawn" in the world model overrides the default start
+	_spawn_node = _level.find_child("Spawn*", true, false)
+	if _spawn_node:
+		_player.place_at(_spawn_node.global_position, _spawn_node.rotation.y)
 	_spells.exploded.connect(func(_p: Vector3) -> void: _shake(0.35))
 	_spells.exclude_rids = [_player.get_rid()]
 	_build_reticle()
@@ -120,8 +125,11 @@ func _on_player_died(cause: String) -> void:
 	if _respawn_age < 3.0:
 		last_checkpoint = maxf(0.0, last_checkpoint - Balance.CHECKPOINT_SPACING)
 	_respawn_age = 0.0
-	# instant respawn at the last checkpoint (DESIGN.md core loop)
-	_player.reset_at(last_checkpoint)
+	# respawn at the authored Spawn point in the open world, else the route
+	if _spawn_node:
+		_player.place_at(_spawn_node.global_position, _spawn_node.rotation.y)
+	else:
+		_player.reset_at(last_checkpoint)
 
 func _aim_point(max_range: float) -> Vector3:
 	## Desktop: raycast through the mouse cursor to the world. Touch devices

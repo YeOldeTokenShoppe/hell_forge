@@ -114,6 +114,19 @@ func reset_at(new_progress: float) -> void:
 	state = State.RUNNING
 	_play_anim("idle", 1.0)
 
+func place_at(pos: Vector3, yaw: float) -> void:
+	## Author-driven spawn: position + facing from a "Spawn" empty in the world.
+	global_position = pos + Vector3(0, 0.5, 0)
+	_heading = yaw
+	rotation.y = yaw
+	velocity = Vector3.ZERO
+	last_ground_y = pos.y
+	_jump_queued = false
+	_walk_touch_index = -1
+	_mouse_walk = false
+	state = State.RUNNING
+	_play_anim("idle", 1.0)
+
 func route_length() -> float:
 	return route.curve.get_baked_length()
 
