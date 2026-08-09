@@ -1,0 +1,138 @@
+[gd_scene format=3 uid="uid://or87vj0g3vlw"]
+
+[ext_resource type="PackedScene" path="res://assets/inferno_baked.glb" id="1_level"]
+[ext_resource type="Script" uid="uid://c2urpxxca80wk" path="res://scripts/main.gd" id="2_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
+[ext_resource type="Texture2D" path="res://assets/ui/minimap.png" id="4_minimap"]
+[ext_resource type="Script" path="res://scripts/spells.gd" id="5_spells"]
+
+[sub_resource type="Curve3D" id="Curve3D_route"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 15.7, 10, 0, 0, 0, 0, 0, 0, 0, 15.7, -60),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Environment" id="Environment_hell"]
+background_mode = 1
+background_color = Color(0.05, 0.02, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.52, 0.4, 0.38, 1)
+ambient_light_energy = 0.55
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.8
+glow_bloom = 0.1
+glow_hdr_threshold = 1.05
+fog_enabled = true
+fog_light_color = Color(0.32, 0.11, 0.09, 1)
+fog_density = 0.012
+
+[node name="Main" type="Node3D" unique_id=728719217]
+script = ExtResource("2_main")
+
+[node name="GauntletLevel" parent="." unique_id=1058367435 instance=ExtResource("1_level")]
+
+[node name="RoutePath" type="Path3D" parent="." unique_id=1202334228]
+curve = SubResource("Curve3D_route")
+
+[node name="Player" parent="." unique_id=1784584775 instance=ExtResource("3_player")]
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=104972670]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 8, 17)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=37491022]
+environment = SubResource("Environment_hell")
+
+[node name="HellSun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.94, 0, 0.342, 0.211, 0.788, 0.579, -0.27, 0.616, -0.741, 0, 30, -150)
+light_color = Color(1, 0.82, 0.62, 1)
+light_energy = 1.1
+
+[node name="Spells" type="Node3D" parent="."]
+script = ExtResource("5_spells")
+
+[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=1347818191]
+
+[node name="DebugLabel" type="Label" parent="DebugOverlay" unique_id=25251942]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 380.0
+offset_bottom = 300.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 32
+
+[node name="Minimap" type="TextureRect" parent="DebugOverlay"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -216.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 216.0
+grow_horizontal = 0
+texture = ExtResource("4_minimap")
+expand_mode = 1
+stretch_mode = 5
+self_modulate = Color(1, 1, 1, 0.88)
+
+[node name="ArrowBlip" type="Polygon2D" parent="DebugOverlay/Minimap"]
+color = Color(1, 0.37, 0.64, 1)
+polygon = PackedVector2Array(0, -8, 6, 6, 0, 3, -6, 6)
+
+[node name="FlashRect" type="ColorRect" parent="DebugOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.85, 0.92, 1, 0)
+
+[node name="BoltButton" type="Button" parent="DebugOverlay"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -250.0
+offset_right = 190.0
+offset_bottom = -150.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.62, 0.78, 1, 1)
+text = "BOLT"
+
+[node name="FireButton" type="Button" parent="DebugOverlay"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -130.0
+offset_right = 190.0
+offset_bottom = -30.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 0.72, 0.35, 1)
+text = "FIRE"
+
+[node name="MsgLabel" type="Label" parent="DebugOverlay" unique_id=1884031911]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -480.0
+offset_top = -40.0
+offset_right = 480.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 40
+horizontal_alignment = 1
+vertical_alignment = 1
