@@ -38,6 +38,7 @@ def main():
     arm = next(o for o in bpy.data.objects if o.type == "ARMATURE")
     uni = next(c for c in arm.children_recursive
                if c.type == "MESH" and any(m.type == "ARMATURE" for m in c.modifiers))
+    # character.blend is curated: every action in it ships with the game
     stats["objects"] = sorted(o.name for o in bpy.data.objects)
     stats["actions"] = sorted(a.name for a in bpy.data.actions)
 

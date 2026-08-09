@@ -178,7 +178,9 @@ func _physics_process(delta: float) -> void:
 	if _action_hold > 0.0:
 		_action_hold -= delta
 	elif state == State.RUNNING:
-		if walking:
+		if not is_on_floor():
+			_play_anim("jump", 1.5)
+		elif walking:
 			_play_anim("run" if fast_gait else "walk", 1.0)
 		else:
 			_play_anim("idle", 1.0)
