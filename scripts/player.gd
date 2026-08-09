@@ -179,7 +179,12 @@ func _physics_process(delta: float) -> void:
 		_action_hold -= delta
 	elif state == State.RUNNING:
 		if not is_on_floor():
-			_play_anim("jump", 1.5)
+			# the Mixamo clip opens with an anticipation coil; physics has
+			# already launched, so start at the leap itself
+			const JUMP_AIR_SEEK: float = 0.65
+			if _anim and _anim.current_animation != "jump":
+				_play_anim("jump", 1.5)
+				_anim.seek(JUMP_AIR_SEEK, true)
 		elif walking:
 			_play_anim("run" if fast_gait else "walk", 1.0)
 		else:
