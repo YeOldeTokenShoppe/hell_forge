@@ -34,6 +34,7 @@ var _respawn_age: float = 1e9
 var _orbit_yaw: float = 0.0
 var _was_walking: bool = false
 var _spawn_node: Node3D = null
+var _cam_dist: float = 999.0  # smoothed camera-occlusion distance
 var run_time: float = 0.0
 var finished: bool = false
 var _msg_timer: float = 0.0
@@ -299,15 +300,25 @@ func _chase_camera(delta: float) -> void:
 		_shake_amp *= exp(-7.0 * delta)
 	# occlusion clamp: when level geometry gets between the character and
 	# the camera (descending big stair steps), pull the camera in just far
-	# enough to keep the shot clear; it eases back out on its own
+	# enough to keep the shot clear. Pull-in is instant (never render inside
+	# rock); release eases back out so step edges don't cause jitter.
 	var look_from: Vector3 = _player.global_position + Vector3(0.0, 1.2, 0.0)
+	var to_cam: Vector3 = _camera.global_position - look_from
+	var full_dist: float = to_cam.length()
 	var cam_query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
 			look_from, _camera.global_position)
 	cam_query.exclude = [_player.get_rid()]
 	var cam_hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(cam_query)
+	var desired: float = full_dist
 	if cam_hit:
-		_camera.global_position = cam_hit.position \
-				+ (look_from - cam_hit.position).normalized() * 0.3
+		var hit_pos: Vector3 = cam_hit["position"]
+		desired = maxf(minf(hit_pos.distance_to(look_from) - 0.3, full_dist), 0.4)
+	if desired < _cam_dist:
+		_cam_dist = desired
+	else:
+		_cam_dist = minf(lerpf(_cam_dist, desired, 1.0 - exp(-5.0 * delta)), full_dist)
+	if _cam_dist < full_dist and full_dist > 0.001:
+		_camera.global_position = look_from + to_cam * (_cam_dist / full_dist)
 	_camera.look_at(_player.global_position + Vector3(0.0, 1.2, 0.0))
 	# fog eases off with altitude: full ember murk at ground level, thin
 	# haze from the vista cliffs so high spawns can see the whole scene

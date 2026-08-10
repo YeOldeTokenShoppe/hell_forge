@@ -21,6 +21,6 @@ const HAZARDS_LETHAL: bool = false      # experiment 2026-08-07: pilgrimage mode
 const MINIMAP_WORLD_SIZE: float = 460.0 # world meters covered by assets/ui/minimap.png
 const FOG_GROUND_DENSITY: float = 0.012 # ember murk during ground-level play
 const FOG_VISTA_DENSITY: float = 0.0012 # thin haze from high vantage points
-const FOG_CLEAR_START_Y: float = 40.0   # camera height where fog starts thinning
-const FOG_CLEAR_END_Y: float = 85.0     # camera height of full vista clarity
+const FOG_CLEAR_START_Y: float = 30.0   # camera height where fog starts thinning
+const FOG_CLEAR_END_Y: float = 52.0     # camera height of full vista clarity
 										# (must match ORTHO in the map render script)
