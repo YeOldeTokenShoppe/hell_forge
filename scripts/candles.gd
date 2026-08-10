@@ -10,25 +10,16 @@ signal candle_lit(lit_count: int, total: int)
 
 const IGNITE_RADIUS: float = 5.0
 
-var _shell_shader: Shader = preload("res://assets/shaders/fire_shell.gdshader")
+var _flame_shader: Shader = preload("res://assets/shaders/candle_flame.gdshader")
 var _stations: Array[Dictionary] = []
 var lit_count: int = 0
 
 
 func setup(level: Node3D) -> void:
-	var flame_mesh := SphereMesh.new()
-	flame_mesh.radius = 0.16
-	flame_mesh.height = 0.32
-	flame_mesh.radial_segments = 10
-	flame_mesh.rings = 6
+	var flame_mesh := QuadMesh.new()
+	flame_mesh.size = Vector2(1.0, 1.0)
 	var flame_mat := _flame_material(
-			Color(1.0, 0.25, 0.02), Color(1.0, 0.9, 0.45), 1.15)
-	# the shell shader's defaults are fireball-sized: 0.42 m of vertex
-	# displacement dwarfs a 7 cm flame (reads as a sparkler). Candle-size it.
-	flame_mat.set_shader_parameter("displace", 0.03)
-	flame_mat.set_shader_parameter("noise_scale", 14.0)
-	flame_mat.set_shader_parameter("scroll_speed", 1.6)
-	flame_mat.set_shader_parameter("heat_pow", 1.6)
+			Color(1.0, 0.25, 0.02), Color(1.0, 0.9, 0.45), 1.0)
 	for node: Node in level.find_children("Candle_*", "Node3D", true, false):
 		var wick: MeshInstance3D = null
 		var wax: MeshInstance3D = null
@@ -46,12 +37,15 @@ func setup(level: Node3D) -> void:
 		flame.visible = false
 		var aabb: AABB = wick.mesh.get_aabb()
 		wick.add_child(flame)
-		flame.position = aabb.get_center() + Vector3(0.0, aabb.size.y * 0.55, 0.0)
-		# constant WORLD size (~0.22 m tall) no matter how the candle prop
-		# is scaled in Blender — flames must not shrink with the props
+		# constant WORLD size (~0.26 m tall quad, base on the wick) no matter
+		# how the candle prop is scaled in Blender
 		var ws: Vector3 = wick.global_transform.basis.get_scale()
-		flame.scale = Vector3(0.44 / maxf(ws.x, 0.001), 0.7 / maxf(ws.y, 0.001),
-				0.44 / maxf(ws.z, 0.001))
+		var inv: float = 1.0 / maxf(ws.y, 0.001)
+		flame.scale = Vector3(0.14 / maxf(ws.x, 0.001), 0.26 * inv,
+				0.14 / maxf(ws.x, 0.001))
+		flame.position = aabb.get_center() \
+				+ Vector3(0.0, aabb.size.y * 0.55 + 0.11 * inv, 0.0)
+		flame.custom_aabb = AABB(Vector3(-1.5, -1.5, -1.5), Vector3(3, 3, 3))
 		_stations.append({"root": node, "flame": flame, "wax": wax, "lit": false})
 	_prewarm_lit_wax()
 
@@ -126,28 +120,25 @@ func _prewarm_lit_wax() -> void:
 
 func attach_pilot(tip: Node3D) -> void:
 	## Small ever-burning flame on the staff tip — the pilgrim carries fire.
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.07
-	mesh.height = 0.14
-	mesh.radial_segments = 8
-	mesh.rings = 5
+	## Always visible from load, so it doubles as the flame-shader prewarm.
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(1.0, 1.0)
 	var mat := _flame_material(
-			Color(1.0, 0.3, 0.03), Color(1.0, 0.92, 0.5), 1.4)
-	mat.set_shader_parameter("displace", 0.035)
-	mat.set_shader_parameter("noise_scale", 16.0)
-	mat.set_shader_parameter("scroll_speed", 2.0)
-	mat.set_shader_parameter("heat_pow", 1.6)
+			Color(1.0, 0.3, 0.03), Color(1.0, 0.92, 0.5), 1.2)
+	mat.set_shader_parameter("flicker_speed", 12.0)
 	var flame := MeshInstance3D.new()
 	flame.mesh = mesh
 	flame.material_override = mat
-	flame.scale = Vector3(1.0, 1.8, 1.0)
+	flame.scale = Vector3(0.09, 0.2, 0.09)
+	flame.position = Vector3(0.0, 0.08, 0.0)
+	flame.custom_aabb = AABB(Vector3(-1.5, -1.5, -1.5), Vector3(3, 3, 3))
 	flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	tip.add_child(flame)
 
 
 func _flame_material(cool: Color, hot: Color, energy: float) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
-	m.shader = _shell_shader
+	m.shader = _flame_shader
 	m.set_shader_parameter("col_cool", Vector3(cool.r, cool.g, cool.b))
 	m.set_shader_parameter("col_hot", Vector3(hot.r, hot.g, hot.b))
 	m.set_shader_parameter("energy", energy)
