@@ -10,7 +10,7 @@ from mathutils import Vector
 
 ORTHO = 460.0  # world meters covered; keep in sync with Balance.MINIMAP_WORLD_SIZE
 
-bpy.ops.wm.open_mainfile(filepath="/Users/michellepaulson/gauntlet/assets/src/inferno_world.blend")
+bpy.ops.wm.open_mainfile(filepath="/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend")
 scene = bpy.context.scene
 cam = bpy.data.objects.new("MapCam", bpy.data.cameras.new("MapCam"))
 cam.data.type = "ORTHO"

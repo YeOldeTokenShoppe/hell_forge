@@ -17,6 +17,7 @@ import traceback
 import bpy
 
 SRC_CANDIDATES = [
+    "/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend",
     "/Users/michellepaulson/gauntlet/assets/src/inferno_world.blend",
     "/Users/michellepaulson/gauntlet/assets/inferno_world.blend",
 ]
@@ -108,6 +109,11 @@ def main():
             lava_planes.append(ob)
             continue
         if p == "Sky":
+            keep_alone.append(ob)
+            continue
+        if p.lower().startswith("candle"):
+            # candle stations stay individual objects — Godot builds an
+            # interactive Area3D per candle* node in the baked scene
             keep_alone.append(ob)
             continue
         mat = ob.data.materials[0].name if ob.data.materials and ob.data.materials[0] else "none"
