@@ -9,7 +9,8 @@ const JUMP_VELOCITY: float = 8.2        # m/s upward on tap (apex ~1.87 m clears
 const JUMP_BUFFER: float = 0.2          # seconds a tap stays queued before landing
 const GRAVITY: float = 18.0             # m/s^2 (snappier than earth for game feel)
 const CHECKPOINT_SPACING: float = 40.0  # meters of route between checkpoints
-const FALL_KILL_DEPTH: float = 12.0     # meters below last ground contact = death
+const FALL_KILL_DEPTH: float = 15.0     # meters below last ground contact = death
+                                        # (vista stair terraces drop up to 12 m)
 const RESPAWN_HEIGHT: float = 3.0       # spawn this far above the route point
 const STEP_HEIGHT: float = 0.65         # ledges up to this tall are auto-climbed
 const STEP_PROBE_AHEAD: float = 0.55    # how far ahead to look for a step
