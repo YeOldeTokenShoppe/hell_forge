@@ -38,7 +38,11 @@ func setup(level: Node3D) -> void:
 		var aabb: AABB = wick.mesh.get_aabb()
 		wick.add_child(flame)
 		flame.position = aabb.get_center() + Vector3(0.0, aabb.size.y * 0.55, 0.0)
-		flame.scale = Vector3(1.0, 2.2, 1.0)
+		# constant WORLD size (~0.35 m tall) no matter how the candle prop
+		# is scaled in Blender — flames must not shrink with the props
+		var ws: Vector3 = wick.global_transform.basis.get_scale()
+		flame.scale = Vector3(0.6 / maxf(ws.x, 0.001), 1.1 / maxf(ws.y, 0.001),
+				0.6 / maxf(ws.z, 0.001))
 		_stations.append({"root": node, "flame": flame, "lit": false})
 
 
