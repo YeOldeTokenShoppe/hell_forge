@@ -20,6 +20,7 @@ var _bolt_cooldown: float = 0.0
 var _shake_amp: float = 0.0
 var _candles: Candles
 var _piety_label: Label = null
+var _light_hold: float = 0.0  # cooldown between candle-lighting gestures
 
 # aiming reticle: desktop follows the mouse; touch aims by holding a spell
 # button and dragging (up/down = distance, sideways = lateral), release casts
@@ -62,6 +63,8 @@ func _ready() -> void:
 		_spells.exploded.connect(_candles.on_explosion)
 		_candles.candle_lit.connect(_on_candle_lit)
 		_build_piety_label()
+		if _player.staff_tip:
+			_candles.attach_pilot(_player.staff_tip)
 	_build_reticle()
 	if DisplayServer.is_touchscreen_available():
 		_fire_button.button_down.connect(_begin_aim.bind("fire"))
@@ -271,6 +274,18 @@ func _process(delta: float) -> void:
 		_reticle.global_position = _aim_point(30.0) + Vector3(0, 0.08, 0)
 	else:
 		_reticle.visible = false
+	# devotional lighting: standing beside an unlit candle triggers the
+	# reach-and-light gesture; the wick catches mid-gesture
+	_light_hold -= delta
+	if _light_hold <= 0.0 and _candles.total() > 0 \
+			and _player.is_standing() and _player.is_on_floor():
+		var st: Dictionary = _candles.nearest_unlit(_player.global_position, 2.6)
+		if not st.is_empty():
+			var gesture: String = "light2" if _player.has_anim("light2") else "light"
+			_player.play_cast(gesture, 1.8, 1.0)
+			_light_hold = 3.0
+			get_tree().create_timer(0.9).timeout.connect(
+					func() -> void: _candles.light_station(st))
 	_chase_camera(delta)
 	_update_minimap()
 

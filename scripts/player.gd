@@ -60,12 +60,16 @@ func is_standing() -> bool:
 func facing_dir() -> Vector3:
 	return Vector3(-sin(_heading), 0.0, -cos(_heading))
 
-func play_cast(anim_name: String = "attack_1", hold: float = 1.0) -> void:
+func play_cast(anim_name: String = "attack_1", hold: float = 1.0,
+		speed: float = 1.6) -> void:
 	## Full-body cast gesture; movement anims resume after the hold window.
 	if _anim and _anim.has_animation(anim_name):
-		_anim.speed_scale = 1.6
+		_anim.speed_scale = speed
 		_anim.play(anim_name)
 		_action_hold = hold
+
+func has_anim(anim_name: String) -> bool:
+	return _anim != null and _anim.has_animation(anim_name)
 
 func commit_look(yaw_delta: float) -> void:
 	## Camera orbit while standing becomes the new heading when walking starts.

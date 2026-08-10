@@ -50,17 +50,51 @@ func on_explosion(pos: Vector3) -> void:
 	for st: Dictionary in _stations:
 		if st["lit"]:
 			continue
-		var flame: MeshInstance3D = st["flame"]
-		var root: Node3D = st["root"]
 		# ground-snapped explosions land at the base; tall candles put the
 		# wick well above it — accept whichever is closer
-		var d: float = minf(pos.distance_to(flame.global_position),
-				pos.distance_to(root.global_position))
+		var d: float = minf(
+				pos.distance_to((st["flame"] as MeshInstance3D).global_position),
+				pos.distance_to((st["root"] as Node3D).global_position))
 		if d <= IGNITE_RADIUS:
-			st["lit"] = true
-			flame.visible = true
-			lit_count += 1
-			candle_lit.emit(lit_count, _stations.size())
+			light_station(st)
+
+
+func nearest_unlit(pos: Vector3, radius: float) -> Dictionary:
+	var best: Dictionary = {}
+	var best_d: float = radius
+	for st: Dictionary in _stations:
+		if st["lit"]:
+			continue
+		var d: float = pos.distance_to((st["root"] as Node3D).global_position)
+		if d <= best_d:
+			best_d = d
+			best = st
+	return best
+
+
+func light_station(st: Dictionary) -> void:
+	if st.is_empty() or st["lit"]:
+		return
+	st["lit"] = true
+	(st["flame"] as MeshInstance3D).visible = true
+	lit_count += 1
+	candle_lit.emit(lit_count, _stations.size())
+
+
+func attach_pilot(tip: Node3D) -> void:
+	## Small ever-burning flame on the staff tip — the pilgrim carries fire.
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.07
+	mesh.height = 0.14
+	mesh.radial_segments = 8
+	mesh.rings = 5
+	var flame := MeshInstance3D.new()
+	flame.mesh = mesh
+	flame.material_override = _flame_material(
+			Color(1.0, 0.3, 0.03), Color(1.0, 0.92, 0.5), 2.2)
+	flame.scale = Vector3(1.0, 1.8, 1.0)
+	flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	tip.add_child(flame)
 
 
 func _flame_material(cool: Color, hot: Color, energy: float) -> ShaderMaterial:
