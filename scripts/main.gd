@@ -297,6 +297,17 @@ func _chase_camera(delta: float) -> void:
 		_camera.global_position += Vector3(randf_range(-1, 1), randf_range(-1, 1),
 				randf_range(-1, 1)) * _shake_amp * 0.12
 		_shake_amp *= exp(-7.0 * delta)
+	# occlusion clamp: when level geometry gets between the character and
+	# the camera (descending big stair steps), pull the camera in just far
+	# enough to keep the shot clear; it eases back out on its own
+	var look_from: Vector3 = _player.global_position + Vector3(0.0, 1.2, 0.0)
+	var cam_query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+			look_from, _camera.global_position)
+	cam_query.exclude = [_player.get_rid()]
+	var cam_hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(cam_query)
+	if cam_hit:
+		_camera.global_position = cam_hit.position \
+				+ (look_from - cam_hit.position).normalized() * 0.3
 	_camera.look_at(_player.global_position + Vector3(0.0, 1.2, 0.0))
 	# fog eases off with altitude: full ember murk at ground level, thin
 	# haze from the vista cliffs so high spawns can see the whole scene
