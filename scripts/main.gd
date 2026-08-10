@@ -3,6 +3,7 @@ extends Node3D
 
 @onready var _player: Player = $Player
 @onready var _camera: Camera3D = $Camera3D
+@onready var _env: Environment = ($WorldEnvironment as WorldEnvironment).environment
 @onready var _level: Node3D = $GauntletLevel
 @onready var _overlay: CanvasLayer = $DebugOverlay
 @onready var _debug_label: Label = $DebugOverlay/DebugLabel
@@ -297,6 +298,13 @@ func _chase_camera(delta: float) -> void:
 				randf_range(-1, 1)) * _shake_amp * 0.12
 		_shake_amp *= exp(-7.0 * delta)
 	_camera.look_at(_player.global_position + Vector3(0.0, 1.2, 0.0))
+	# fog eases off with altitude: full ember murk at ground level, thin
+	# haze from the vista cliffs so high spawns can see the whole scene
+	var clear_t: float = clampf(
+			(_camera.global_position.y - Balance.FOG_CLEAR_START_Y)
+			/ (Balance.FOG_CLEAR_END_Y - Balance.FOG_CLEAR_START_Y), 0.0, 1.0)
+	_env.fog_density = lerpf(Balance.FOG_GROUND_DENSITY,
+			Balance.FOG_VISTA_DENSITY, clear_t)
 
 func _cap_lights() -> void:
 	var lights: Array[Node] = _level.find_children("*", "Light3D", true, false)
