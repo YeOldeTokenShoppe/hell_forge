@@ -30,7 +30,10 @@ WALKABLE_PREFIXES = ("Platform", "Bridge", "Mound", "Stair", "Beam", "Bracing",
 # dense decor -> decimated harder in the bake
 DECIMATE_PREFIXES = ("Grass", "Bush", "Crag", "Rock", "Stone", "GoldPile", "Coal",
                      "Bone", "Spike", "Crystal", "Chain", "Brazier", "Vase",
-                     "SilverBar", "Cliff", "Mountain")
+                     "SilverBar", "Mountain")
+# perimeter terrain the player can stand on -> decor decimation but WITH
+# collision (-col), so spawning/walking on the map edge doesn't fall through
+CLIFF_PREFIXES = ("Cliff",)
 DECIMATE_RATIO = 0.35
 MAX_TEX = 1024          # color atlases capped at this
 MAX_NORMAL_TEX = 256    # normal maps barely read at this art style
@@ -117,10 +120,16 @@ def main():
             keep_alone.append(ob)
             continue
         mat = ob.data.materials[0].name if ob.data.materials and ob.data.materials[0] else "none"
-        walk = any(p.startswith(w) for w in WALKABLE_PREFIXES)
-        dec = any(p.startswith(d) for d in DECIMATE_PREFIXES)
+        if any(p.startswith(c) for c in CLIFF_PREFIXES):
+            kind = "cliff"
+        elif any(p.startswith(w) for w in WALKABLE_PREFIXES):
+            kind = "walk"
+        elif any(p.startswith(d) for d in DECIMATE_PREFIXES):
+            kind = "dec"
+        else:
+            kind = "misc"
         loc = ob.matrix_world.translation
-        key = ("walk" if walk else ("dec" if dec else "misc"), mat,
+        key = (kind, mat,
                int((loc.x + 2000) // CELL), int((loc.y + 2000) // CELL))
         groups.setdefault(key, []).append(ob)
 
@@ -132,7 +141,7 @@ def main():
     scene_coll = bpy.context.scene.collection
     for (kind, mat, cx, cy), objs in groups.items():
         name = f"bk_{kind}_{mat[:12]}_{cx}_{cy}"
-        if kind == "walk":
+        if kind in ("walk", "cliff"):
             name += "-col"
         bm = bmesh.new()
         for ob in objs:
@@ -154,7 +163,8 @@ def main():
 
     # --- decimate merged cells (per-category ratios) ---
     print("PHASE joins_done", flush=True)
-    RATIOS = {"dec": DECIMATE_RATIO, "misc": 0.5, "walk": 0.6}
+    RATIOS = {"dec": DECIMATE_RATIO, "misc": 0.5, "walk": 0.6,
+              "cliff": DECIMATE_RATIO}
     for kind, ob in merged:
         ratio = RATIOS.get(kind)
         if ratio is None or ratio >= 1.0:
@@ -216,6 +226,10 @@ def main():
     stats["objects_after"] = len(bpy.data.objects)
     stats["tris_after"] = total
     stats["walk_cells"] = sum(1 for k, _ in merged if k == "walk")
+    stats["cliff_cells"] = sum(1 for k, _ in merged if k == "cliff")
+    stats["cliff_tris"] = sum(
+        sum(len(p.vertices) - 2 for p in ob.data.polygons)
+        for k, ob in merged if k == "cliff")
 
     for _ in range(3):
         bpy.data.orphans_purge(do_recursive=True)
