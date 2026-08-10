@@ -51,7 +51,12 @@ func on_explosion(pos: Vector3) -> void:
 		if st["lit"]:
 			continue
 		var flame: MeshInstance3D = st["flame"]
-		if pos.distance_to(flame.global_position) <= IGNITE_RADIUS:
+		var root: Node3D = st["root"]
+		# ground-snapped explosions land at the base; tall candles put the
+		# wick well above it — accept whichever is closer
+		var d: float = minf(pos.distance_to(flame.global_position),
+				pos.distance_to(root.global_position))
+		if d <= IGNITE_RADIUS:
 			st["lit"] = true
 			flame.visible = true
 			lit_count += 1
