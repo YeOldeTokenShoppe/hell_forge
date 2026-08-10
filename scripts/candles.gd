@@ -22,7 +22,13 @@ func setup(level: Node3D) -> void:
 	flame_mesh.radial_segments = 10
 	flame_mesh.rings = 6
 	var flame_mat := _flame_material(
-			Color(1.0, 0.25, 0.02), Color(1.0, 0.9, 0.45), 1.6)
+			Color(1.0, 0.25, 0.02), Color(1.0, 0.9, 0.45), 1.15)
+	# the shell shader's defaults are fireball-sized: 0.42 m of vertex
+	# displacement dwarfs a 7 cm flame (reads as a sparkler). Candle-size it.
+	flame_mat.set_shader_parameter("displace", 0.03)
+	flame_mat.set_shader_parameter("noise_scale", 14.0)
+	flame_mat.set_shader_parameter("scroll_speed", 1.6)
+	flame_mat.set_shader_parameter("heat_pow", 1.6)
 	for node: Node in level.find_children("Candle_*", "Node3D", true, false):
 		var wick: MeshInstance3D = null
 		var wax: MeshInstance3D = null
@@ -125,10 +131,15 @@ func attach_pilot(tip: Node3D) -> void:
 	mesh.height = 0.14
 	mesh.radial_segments = 8
 	mesh.rings = 5
+	var mat := _flame_material(
+			Color(1.0, 0.3, 0.03), Color(1.0, 0.92, 0.5), 1.4)
+	mat.set_shader_parameter("displace", 0.035)
+	mat.set_shader_parameter("noise_scale", 16.0)
+	mat.set_shader_parameter("scroll_speed", 2.0)
+	mat.set_shader_parameter("heat_pow", 1.6)
 	var flame := MeshInstance3D.new()
 	flame.mesh = mesh
-	flame.material_override = _flame_material(
-			Color(1.0, 0.3, 0.03), Color(1.0, 0.92, 0.5), 2.2)
+	flame.material_override = mat
 	flame.scale = Vector3(1.0, 1.8, 1.0)
 	flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	tip.add_child(flame)
