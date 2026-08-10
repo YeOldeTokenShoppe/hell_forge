@@ -22,12 +22,15 @@ func setup(level: Node3D) -> void:
 	flame_mesh.radial_segments = 10
 	flame_mesh.rings = 6
 	var flame_mat := _flame_material(
-			Color(1.0, 0.25, 0.02), Color(1.0, 0.9, 0.45), 2.6)
+			Color(1.0, 0.25, 0.02), Color(1.0, 0.9, 0.45), 1.6)
 	for node: Node in level.find_children("Candle_*", "Node3D", true, false):
 		var wick: MeshInstance3D = null
+		var wax: MeshInstance3D = null
 		for child: Node in node.get_children():
 			if child is MeshInstance3D and String(child.name).begins_with("Candle_Wick"):
 				wick = child
+			elif child is MeshInstance3D and String(child.name).begins_with("Candle_Wax"):
+				wax = child
 		if wick == null:
 			continue
 		var flame := MeshInstance3D.new()
@@ -38,12 +41,13 @@ func setup(level: Node3D) -> void:
 		var aabb: AABB = wick.mesh.get_aabb()
 		wick.add_child(flame)
 		flame.position = aabb.get_center() + Vector3(0.0, aabb.size.y * 0.55, 0.0)
-		# constant WORLD size (~0.35 m tall) no matter how the candle prop
+		# constant WORLD size (~0.22 m tall) no matter how the candle prop
 		# is scaled in Blender — flames must not shrink with the props
 		var ws: Vector3 = wick.global_transform.basis.get_scale()
-		flame.scale = Vector3(0.6 / maxf(ws.x, 0.001), 1.1 / maxf(ws.y, 0.001),
-				0.6 / maxf(ws.z, 0.001))
-		_stations.append({"root": node, "flame": flame, "lit": false})
+		flame.scale = Vector3(0.44 / maxf(ws.x, 0.001), 0.7 / maxf(ws.y, 0.001),
+				0.44 / maxf(ws.z, 0.001))
+		_stations.append({"root": node, "flame": flame, "wax": wax, "lit": false})
+	_prewarm_lit_wax()
 
 
 func total() -> int:
@@ -81,8 +85,37 @@ func light_station(st: Dictionary) -> void:
 		return
 	st["lit"] = true
 	(st["flame"] as MeshInstance3D).visible = true
+	# blessed wax: red -> green (texture can't be tinted green, so swap)
+	var wax: MeshInstance3D = st["wax"]
+	if wax != null:
+		wax.material_override = _lit_wax_material()
 	lit_count += 1
 	candle_lit.emit(lit_count, _stations.size())
+
+
+var _lit_wax_mat: StandardMaterial3D = null
+
+
+func _lit_wax_material() -> StandardMaterial3D:
+	if _lit_wax_mat == null:
+		_lit_wax_mat = StandardMaterial3D.new()
+		_lit_wax_mat.albedo_color = Color(0.2, 0.72, 0.34)
+		_lit_wax_mat.roughness = 0.9
+		_lit_wax_mat.emission_enabled = true
+		_lit_wax_mat.emission = Color(0.1, 0.5, 0.2)
+		_lit_wax_mat.emission_energy_multiplier = 0.6
+	return _lit_wax_mat
+
+
+func _prewarm_lit_wax() -> void:
+	# compile the lit-wax pipeline at load (first-light must never hitch)
+	var quad := MeshInstance3D.new()
+	quad.mesh = QuadMesh.new()
+	quad.material_override = _lit_wax_material()
+	quad.custom_aabb = AABB(Vector3(-2000, -2000, -2000), Vector3(4000, 4000, 4000))
+	quad.position = Vector3(0, -180, 0)
+	add_child(quad)
+	get_tree().create_timer(2.0).timeout.connect(quad.queue_free)
 
 
 func attach_pilot(tip: Node3D) -> void:
