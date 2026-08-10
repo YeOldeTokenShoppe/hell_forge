@@ -35,7 +35,6 @@ func setup(level: Node3D) -> void:
 		flame.material_override = flame_mat
 		flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		flame.visible = false
-		var aabb: AABB = wick.mesh.get_aabb()
 		wick.add_child(flame)
 		# constant WORLD size (~0.26 m tall quad, base on the wick) no matter
 		# how the candle prop is scaled in Blender
@@ -43,8 +42,21 @@ func setup(level: Node3D) -> void:
 		var inv: float = 1.0 / maxf(ws.y, 0.001)
 		flame.scale = Vector3(0.14 / maxf(ws.x, 0.001), 0.26 * inv,
 				0.14 / maxf(ws.x, 0.001))
-		flame.position = aabb.get_center() \
-				+ Vector3(0.0, aabb.size.y * 0.55 + 0.11 * inv, 0.0)
+		# anchor on the true wick tip: curled wick geometry skews the AABB
+		# center sideways, so average the topmost vertices instead
+		var aabb: AABB = wick.mesh.get_aabb()
+		var tip: Vector3 = aabb.get_center() + Vector3(0.0, aabb.size.y * 0.5, 0.0)
+		var verts: PackedVector3Array = \
+				wick.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var acc := Vector3.ZERO
+		var n: int = 0
+		for v: Vector3 in verts:
+			if v.y >= aabb.position.y + aabb.size.y * 0.8:
+				acc += v
+				n += 1
+		if n > 0:
+			tip = acc / float(n)
+		flame.position = tip + Vector3(0.0, 0.1 * inv, 0.0)
 		flame.custom_aabb = AABB(Vector3(-1.5, -1.5, -1.5), Vector3(3, 3, 3))
 		_stations.append({"root": node, "flame": flame, "wax": wax, "lit": false})
 	_prewarm_lit_wax()
