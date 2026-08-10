@@ -23,12 +23,25 @@ func setup(level: Node3D) -> void:
 	for node: Node in level.find_children("Candle_*", "Node3D", true, false):
 		var wick: MeshInstance3D = null
 		var wax: MeshInstance3D = null
+		var authored: MeshInstance3D = null
 		for child: Node in node.get_children():
-			if child is MeshInstance3D and String(child.name).begins_with("Candle_Wick"):
+			if not (child is MeshInstance3D):
+				continue
+			var lower: String = String(child.name).to_lower()
+			if lower.contains("wick"):
 				wick = child
-			elif child is MeshInstance3D and String(child.name).begins_with("Candle_Wax"):
+			elif lower.contains("wax"):
 				wax = child
-		if wick == null:
+			elif lower.contains("flame"):
+				authored = child
+		if wick == null and authored == null:
+			continue
+		# authored flame mesh: hidden until lit, revealed with emissive
+		# glow + flicker — the artist's flame IS the lit visual
+		if authored != null:
+			authored.visible = false
+			_stations.append({"root": node, "flame": authored, "authored": true,
+					"wax": wax, "lit": false})
 			continue
 		var flame := MeshInstance3D.new()
 		flame.mesh = flame_mesh
@@ -58,8 +71,9 @@ func setup(level: Node3D) -> void:
 			tip = acc / float(n)
 		flame.position = tip + Vector3(0.0, 0.1 * inv, 0.0)
 		flame.custom_aabb = AABB(Vector3(-1.5, -1.5, -1.5), Vector3(3, 3, 3))
-		_stations.append({"root": node, "flame": flame, "wax": wax, "lit": false})
-	_prewarm_lit_wax()
+		_stations.append({"root": node, "flame": flame, "authored": false,
+				"wax": wax, "lit": false})
+	_prewarm_materials()
 
 
 func total() -> int:
@@ -96,13 +110,31 @@ func light_station(st: Dictionary) -> void:
 	if st.is_empty() or st["lit"]:
 		return
 	st["lit"] = true
-	(st["flame"] as MeshInstance3D).visible = true
+	var flame: MeshInstance3D = st["flame"]
+	flame.visible = true
+	if st.get("authored", false):
+		flame.material_override = _authored_flame_material()
+		_flickers.append({"mi": flame, "base": flame.scale, "phase": randf() * TAU})
 	# blessed wax: red -> green (texture can't be tinted green, so swap)
 	var wax: MeshInstance3D = st["wax"]
 	if wax != null:
 		wax.material_override = _lit_wax_material()
 	lit_count += 1
 	candle_lit.emit(lit_count, _stations.size())
+
+
+var _flickers: Array[Dictionary] = []
+
+
+func _process(_delta: float) -> void:
+	if _flickers.is_empty():
+		return
+	var t: float = Time.get_ticks_msec() / 1000.0
+	for f: Dictionary in _flickers:
+		var s: float = 1.0 + 0.07 * sin(t * 9.0 + f["phase"]) \
+				+ 0.04 * sin(t * 23.0 + f["phase"] * 2.0)
+		(f["mi"] as MeshInstance3D).scale = (f["base"] as Vector3) \
+				* Vector3(s, 1.0 + (s - 1.0) * 1.6, s)
 
 
 var _lit_wax_mat: StandardMaterial3D = null
@@ -119,15 +151,31 @@ func _lit_wax_material() -> StandardMaterial3D:
 	return _lit_wax_mat
 
 
-func _prewarm_lit_wax() -> void:
-	# compile the lit-wax pipeline at load (first-light must never hitch)
-	var quad := MeshInstance3D.new()
-	quad.mesh = QuadMesh.new()
-	quad.material_override = _lit_wax_material()
-	quad.custom_aabb = AABB(Vector3(-2000, -2000, -2000), Vector3(4000, 4000, 4000))
-	quad.position = Vector3(0, -180, 0)
-	add_child(quad)
-	get_tree().create_timer(2.0).timeout.connect(quad.queue_free)
+var _authored_flame_mat: StandardMaterial3D = null
+
+
+func _authored_flame_material() -> StandardMaterial3D:
+	if _authored_flame_mat == null:
+		_authored_flame_mat = StandardMaterial3D.new()
+		_authored_flame_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_authored_flame_mat.albedo_color = Color(1.0, 0.62, 0.18)
+		_authored_flame_mat.emission_enabled = true
+		_authored_flame_mat.emission = Color(1.0, 0.55, 0.15)
+		_authored_flame_mat.emission_energy_multiplier = 1.2
+	return _authored_flame_mat
+
+
+func _prewarm_materials() -> void:
+	# compile the lit-state pipelines at load (first light must never hitch)
+	for mat: Material in [_lit_wax_material(), _authored_flame_material()]:
+		var quad := MeshInstance3D.new()
+		quad.mesh = QuadMesh.new()
+		quad.material_override = mat
+		quad.custom_aabb = AABB(Vector3(-2000, -2000, -2000),
+				Vector3(4000, 4000, 4000))
+		quad.position = Vector3(0, -180, 0)
+		add_child(quad)
+		get_tree().create_timer(2.0).timeout.connect(quad.queue_free)
 
 
 func attach_pilot(tip: Node3D) -> void:

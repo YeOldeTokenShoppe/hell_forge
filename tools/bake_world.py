@@ -114,10 +114,18 @@ def main():
         if p == "Sky":
             keep_alone.append(ob)
             continue
-        if p.lower().startswith("candle"):
-            # candle stations stay individual objects so the game can wire
-            # an interaction to each; roots get trimesh collision (Godot
-            # strips the -col suffix on import, name stays Candle_*)
+        # candle stations (and ALL their sub-parts, whatever they're named)
+        # stay individual objects so the game can wire an interaction to
+        # each; roots get trimesh collision (Godot strips the -col suffix
+        # on import, name stays Candle_*)
+        anc = ob
+        is_candle = False
+        while anc is not None:
+            if prefix_of(anc.name).lower().startswith("candle"):
+                is_candle = True
+                break
+            anc = anc.parent
+        if is_candle:
             if ob.parent is None and not ob.name.endswith("-col"):
                 ob.name += "-col"
             keep_alone.append(ob)
