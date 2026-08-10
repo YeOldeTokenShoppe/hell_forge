@@ -126,7 +126,10 @@ def main():
                 break
             anc = anc.parent
         if is_candle:
-            if ob.parent is None and not ob.name.endswith("-col"):
+            # collision rides on whatever holds the geometry: a mesh root
+            # (old style) or the wax body (chart style, empty root)
+            if ((ob.parent is None or "wax" in ob.name.lower())
+                    and not ob.name.endswith("-col")):
                 ob.name += "-col"
             keep_alone.append(ob)
             continue
