@@ -115,8 +115,11 @@ def main():
             keep_alone.append(ob)
             continue
         if p.lower().startswith("candle"):
-            # candle stations stay individual objects — Godot builds an
-            # interactive Area3D per candle* node in the baked scene
+            # candle stations stay individual objects so the game can wire
+            # an interaction to each; roots get trimesh collision (Godot
+            # strips the -col suffix on import, name stays Candle_*)
+            if ob.parent is None and not ob.name.endswith("-col"):
+                ob.name += "-col"
             keep_alone.append(ob)
             continue
         mat = ob.data.materials[0].name if ob.data.materials and ob.data.materials[0] else "none"

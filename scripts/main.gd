@@ -18,6 +18,8 @@ extends Node3D
 var _fire_cooldown: float = 0.0
 var _bolt_cooldown: float = 0.0
 var _shake_amp: float = 0.0
+var _candles: Candles
+var _piety_label: Label = null
 
 # aiming reticle: desktop follows the mouse; touch aims by holding a spell
 # button and dragging (up/down = distance, sideways = lateral), release casts
@@ -53,6 +55,13 @@ func _ready() -> void:
 		_player.place_at(_spawn_node.global_position, _spawn_node.rotation.y)
 	_spells.exploded.connect(func(_p: Vector3) -> void: _shake(0.35))
 	_spells.exclude_rids = [_player.get_rid()]
+	_candles = Candles.new()
+	add_child(_candles)
+	_candles.setup(_level)
+	if _candles.total() > 0:
+		_spells.exploded.connect(_candles.on_explosion)
+		_candles.candle_lit.connect(_on_candle_lit)
+		_build_piety_label()
 	_build_reticle()
 	if DisplayServer.is_touchscreen_available():
 		_fire_button.button_down.connect(_begin_aim.bind("fire"))
@@ -66,6 +75,25 @@ func _ready() -> void:
 		_bolt_button.pressed.connect(_cast_bolt)
 	_debug_enabled = _detect_debug()
 	_debug_label.visible = _debug_enabled
+
+func _build_piety_label() -> void:
+	# sits just below the minimap frame (frame bottom = 357), same right margin
+	_piety_label = Label.new()
+	_piety_label.text = "PIETY 0 / %d" % _candles.total()
+	_piety_label.add_theme_font_size_override("font_size", 20)
+	_piety_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.5))
+	_piety_label.add_theme_color_override("font_outline_color", Color(0.12, 0.02, 0.0, 0.9))
+	_piety_label.add_theme_constant_override("outline_size", 7)
+	_piety_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_piety_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_piety_label.offset_left = -240.0
+	_piety_label.offset_top = 364.0
+	_piety_label.offset_right = -14.0
+	_piety_label.offset_bottom = 394.0
+	_overlay.add_child(_piety_label)
+
+func _on_candle_lit(lit_count_now: int, total: int) -> void:
+	_piety_label.text = "PIETY %d / %d" % [lit_count_now, total]
 
 func _build_reticle() -> void:
 	_reticle = MeshInstance3D.new()
