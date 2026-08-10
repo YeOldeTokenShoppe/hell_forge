@@ -35,6 +35,7 @@ var _orbit_yaw: float = 0.0
 var _was_walking: bool = false
 var _spawn_node: Node3D = null
 var _cam_dist: float = 999.0  # smoothed camera-occlusion distance
+var _drop_look: float = 0.0   # smoothed camera pitch-down for descents
 var run_time: float = 0.0
 var finished: bool = false
 var _msg_timer: float = 0.0
@@ -291,7 +292,22 @@ func _chase_camera(delta: float) -> void:
 		back = back.rotated(Vector3.UP, _orbit_yaw)
 	else:
 		_orbit_yaw = 0.0
-	var target_pos: Vector3 = _player.global_position + back * 4.5 + Vector3(0.0, 2.2, 0.0)
+	# descent visibility: crane up + pitch down while falling, and peek
+	# over drop edges the character faces so stairs read before the jump
+	var want_look: float = 0.0
+	if not _player.is_on_floor() and _player.velocity.y < -2.0:
+		want_look = clampf(-_player.velocity.y * 0.4, 1.0, 7.0)
+	else:
+		var ahead: Vector3 = _player.global_position - back * 2.5 + Vector3(0, 0.5, 0)
+		var drop_query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+				ahead, ahead + Vector3(0, -7.0, 0))
+		drop_query.exclude = [_player.get_rid()]
+		if get_world_3d().direct_space_state.intersect_ray(drop_query).is_empty():
+			want_look = 3.0
+	var look_rate: float = 4.0 if want_look > _drop_look else 1.5
+	_drop_look = lerpf(_drop_look, want_look, 1.0 - exp(-look_rate * delta))
+	var target_pos: Vector3 = _player.global_position + back * 4.5 \
+			+ Vector3(0.0, 2.2 + _drop_look * 0.5, 0.0)
 	var w: float = 1.0 - exp(-6.0 * delta)
 	_camera.global_position = _camera.global_position.lerp(target_pos, w)
 	if _shake_amp > 0.003:
@@ -319,7 +335,7 @@ func _chase_camera(delta: float) -> void:
 		_cam_dist = minf(lerpf(_cam_dist, desired, 1.0 - exp(-5.0 * delta)), full_dist)
 	if _cam_dist < full_dist and full_dist > 0.001:
 		_camera.global_position = look_from + to_cam * (_cam_dist / full_dist)
-	_camera.look_at(_player.global_position + Vector3(0.0, 1.2, 0.0))
+	_camera.look_at(_player.global_position + Vector3(0.0, 1.2 - _drop_look, 0.0))
 	# fog eases off with altitude: full ember murk at ground level, thin
 	# haze from the vista cliffs so high spawns can see the whole scene
 	var clear_t: float = clampf(
