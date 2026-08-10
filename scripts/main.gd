@@ -7,8 +7,8 @@ extends Node3D
 @onready var _overlay: CanvasLayer = $DebugOverlay
 @onready var _debug_label: Label = $DebugOverlay/DebugLabel
 @onready var _msg_label: Label = $DebugOverlay/MsgLabel
-@onready var _minimap: TextureRect = $DebugOverlay/Minimap
-@onready var _map_blip: Polygon2D = $DebugOverlay/Minimap/ArrowBlip
+@onready var _minimap: TextureRect = $DebugOverlay/MinimapFrame/Minimap
+@onready var _map_blip: Polygon2D = $DebugOverlay/MinimapFrame/Minimap/ArrowBlip
 @onready var _spells: Spells = $Spells
 @onready var _fire_button: Button = $DebugOverlay/FireButton
 @onready var _bolt_button: Button = $DebugOverlay/BoltButton
@@ -275,7 +275,11 @@ func _update_minimap() -> void:
 	var s: float = Balance.MINIMAP_WORLD_SIZE
 	var pos: Vector3 = _player.global_position
 	var uv: Vector2 = Vector2((pos.x + s * 0.5) / s, (pos.z + s * 0.5) / s)
-	_map_blip.position = uv.clamp(Vector2.ZERO, Vector2.ONE) * _minimap.size
+	# keep the blip inside the circular frame window
+	var centered: Vector2 = uv - Vector2(0.5, 0.5)
+	if centered.length() > 0.46:
+		centered = centered.normalized() * 0.46
+	_map_blip.position = (centered + Vector2(0.5, 0.5)) * _minimap.size
 	var h: float = _player.rotation.y
 	_map_blip.rotation = atan2(-sin(h), cos(h))
 
