@@ -48,6 +48,76 @@ def prefix_of(name: str) -> str:
     return "".join(out)
 
 
+def patch_stair_cracks():
+    """Invisible -colonly quads over holes in big stair walking surfaces.
+
+    The stone-pieced stairs have open seams (widened by non-uniform
+    scaling) that a capsule slips through. Rain rays down on a 0.6 m
+    grid; any dry cell with wet neighbors gets a collision patch at the
+    neighbors' height. Runs per bake, so rescaled stairs self-heal."""
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    import bmesh
+
+    dg = bpy.context.evaluated_depsgraph_get()
+    cell = 0.6
+    bm = bmesh.new()
+    patched = 0
+    for ob in list(bpy.data.objects):
+        if ob.type != "MESH" or not prefix_of(ob.name).startswith("Stair"):
+            continue
+        if ob.dimensions.z < 5:
+            continue
+        bvh = BVHTree.FromObject(ob, dg)
+        mw = ob.matrix_world
+        mi = mw.inverted()
+        corners = [mw @ Vector(c) for c in ob.bound_box]
+        x0 = min(c.x for c in corners)
+        x1 = max(c.x for c in corners)
+        y0 = min(c.y for c in corners)
+        y1 = max(c.y for c in corners)
+        z_top = max(c.z for c in corners) + 2.0
+        nx = int((x1 - x0) / cell) + 1
+        ny = int((y1 - y0) / cell) + 1
+        if nx * ny > 200000:
+            continue
+        d_local = (mi.to_3x3() @ Vector((0, 0, -1))).normalized()
+        heights = {}
+        for ix in range(nx):
+            for iy in range(ny):
+                origin = mi @ Vector((x0 + (ix + 0.5) * cell,
+                                      y0 + (iy + 0.5) * cell, z_top))
+                hit = bvh.ray_cast(origin, d_local)
+                if hit[0] is not None:
+                    heights[(ix, iy)] = (mw @ hit[0]).z
+        for ix in range(nx):
+            for iy in range(ny):
+                if (ix, iy) in heights:
+                    continue
+                nb = [heights[k] for k in
+                      ((ix - 1, iy), (ix + 1, iy), (ix, iy - 1), (ix, iy + 1))
+                      if k in heights]
+                if len(nb) < 2:
+                    continue
+                z = max(nb) + 0.02
+                cx = x0 + (ix + 0.5) * cell
+                cy = y0 + (iy + 0.5) * cell
+                h = cell * 0.62  # overlap into neighbors so seams seal
+                vs = [bm.verts.new((cx - h, cy - h, z)),
+                      bm.verts.new((cx + h, cy - h, z)),
+                      bm.verts.new((cx + h, cy + h, z)),
+                      bm.verts.new((cx - h, cy + h, z))]
+                bm.faces.new(vs)
+                patched += 1
+    if patched:
+        patch_me = bpy.data.meshes.new("bk_crackpatch")
+        bm.to_mesh(patch_me)
+        patch_ob = bpy.data.objects.new("bk_crackpatch-colonly", patch_me)
+        bpy.context.scene.collection.objects.link(patch_ob)
+    bm.free()
+    return patched
+
+
 def main():
     src = next((p for p in SRC_CANDIDATES if os.path.exists(p)), None)
     if src is None:
@@ -98,6 +168,8 @@ def main():
     if bpy.context.scene.world:
         bpy.context.scene.world = None
     print("PHASE helpers_done", flush=True)
+    stats["crack_patches"] = patch_stair_cracks()
+    print("PHASE crackpatch_done", flush=True)
 
     # --- classify meshes ---
     lava_planes = []
@@ -105,6 +177,11 @@ def main():
     keep_alone = []
     for ob in bpy.data.objects:
         if ob.type != "MESH":
+            keep_alone.append(ob)
+            continue
+        if ob.name.endswith("-colonly"):
+            # invisible collision helpers (generated crack patches, hand-
+            # placed ramps) pass through untouched
             keep_alone.append(ob)
             continue
         p = prefix_of(ob.name)
