@@ -338,8 +338,10 @@ func _chase_camera(delta: float) -> void:
 	# descent visibility: crane up + pitch down while falling, and peek
 	# over drop edges the character faces so stairs read before the jump
 	var want_look: float = 0.0
-	if not _player.is_on_floor() and _player.velocity.y < -2.0:
-		want_look = clampf(-_player.velocity.y * 0.4, 1.0, 7.0)
+	# threshold tuned so terrace hops (~2.5 m) barely engage it — the full
+	# pitch-down is reserved for genuine falls; hops stay near-level
+	if not _player.is_on_floor() and _player.velocity.y < -5.5:
+		want_look = clampf((-_player.velocity.y - 4.0) * 0.35, 0.5, 6.0)
 	else:
 		var ahead: Vector3 = _player.global_position - back * 2.5 + Vector3(0, 0.5, 0)
 		var drop_query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
