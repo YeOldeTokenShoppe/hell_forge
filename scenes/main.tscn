@@ -1,15 +1,12 @@
 [gd_scene format=3 uid="uid://or87vj0g3vlw"]
 
-[ext_resource type="PackedScene" path="res://assets/pirate_baked.glb" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://o0dfgt3xy7cv" path="res://assets/pirate_baked.glb" id="1_level"]
 [ext_resource type="Script" uid="uid://c2urpxxca80wk" path="res://scripts/main.gd" id="2_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
-[ext_resource type="Texture2D" path="res://assets/ui/minimap.png" id="4_minimap"]
-[ext_resource type="Script" path="res://scripts/spells.gd" id="5_spells"]
-[ext_resource type="Texture2D" path="res://assets/ui/miniMapFrame.png" id="6_mapframe"]
-[ext_resource type="Shader" path="res://assets/shaders/circle_mask.gdshader" id="7_circlemask"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_mapmask"]
-shader = ExtResource("7_circlemask")
+[ext_resource type="Texture2D" uid="uid://vgi1tvvyow8q" path="res://assets/ui/minimap.png" id="4_minimap"]
+[ext_resource type="Script" uid="uid://1ea7efvxxmkc" path="res://scripts/spells.gd" id="5_spells"]
+[ext_resource type="Texture2D" uid="uid://kywe6di2um1t" path="res://assets/ui/miniMapFrame.png" id="6_mapframe"]
+[ext_resource type="Shader" uid="uid://c0inhmc5wofrl" path="res://assets/shaders/circle_mask.gdshader" id="7_circlemask"]
 
 [sub_resource type="Curve3D" id="Curve3D_route"]
 _data = {
@@ -18,21 +15,37 @@ _data = {
 }
 point_count = 2
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_synty"]
+sky_top_color = Color(0.454902, 0.678431, 0.87451, 1)
+sky_horizon_color = Color(1, 1, 1, 1)
+sky_curve = 0.10702879
+sky_energy_multiplier = 1.5
+ground_bottom_color = Color(0.454902, 0.470588, 0.490196, 1)
+ground_horizon_color = Color(1, 1, 1, 1)
+energy_multiplier = 1.5
+
+[sub_resource type="Sky" id="Sky_synty"]
+sky_material = SubResource("ProceduralSkyMaterial_synty")
+
 [sub_resource type="Environment" id="Environment_hell"]
-background_mode = 1
-background_color = Color(0.06, 0.03, 0.05, 1)
+background_mode = 2
+sky = SubResource("Sky_synty")
 ambient_light_source = 2
-ambient_light_color = Color(0.5, 0.45, 0.6, 1)
-ambient_light_energy = 1.1
-tonemap_mode = 2
-tonemap_exposure = 1.3
+ambient_light_color = Color(0.88173205, 0.87048626, 0.8697554, 1)
+ambient_light_energy = 1.06
+reflected_light_source = 1
+tonemap_exposure = 1.18
 glow_enabled = true
 glow_intensity = 0.8
 glow_bloom = 0.1
 glow_hdr_threshold = 1.05
-fog_enabled = false
-fog_light_color = Color(0.32, 0.11, 0.09, 1)
-fog_density = 0.012
+adjustment_enabled = true
+adjustment_brightness = 0.92
+adjustment_contrast = 0.95
+adjustment_saturation = 1.14
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mapmask"]
+shader = ExtResource("7_circlemask")
 
 [node name="Main" type="Node3D" unique_id=728719217]
 script = ExtResource("2_main")
@@ -50,12 +63,26 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 8, 17)
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=37491022]
 environment = SubResource("Environment_hell")
 
-[node name="HellSun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.826, -0.193, 0.528, 0, 0.936, 0.342, -0.564, -0.283, 0.773, 0, 30, -150)
-light_color = Color(1, 0.62, 0.32, 1)
-light_energy = 1.15
+[node name="SunKey" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.3811428, 0.8918751, -0.24349302, -0.4249592, 0.06489218, 0.9028835, 0.82106024, 0.44760224, 0.35427737, -56.8, 114.3541, 35)
+light_color = Color(0.9717136, 0.9597489, 0.90673274, 1)
+light_energy = 0.9
+shadow_enabled = true
+shadow_bias = 7.133
+shadow_normal_bias = 5.591
+shadow_transmittance_bias = -5.72
+shadow_opacity = 0.85
+shadow_blur = 0.01
+directional_shadow_split_1 = 0.077
+directional_shadow_split_2 = 0.167
+directional_shadow_pancake_size = 39.5
 
-[node name="Spells" type="Node3D" parent="."]
+[node name="SunFill" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.34228796, -0.93206215, -0.11874136, 0.46826586, 0.059655692, 0.88157153, -0.8145957, -0.35735387, 0.45687222, -56.8, 114.3541, 35)
+light_color = Color(0.9717136, 0.9597489, 0.90673274, 1)
+light_energy = 0.1
+
+[node name="Spells" type="Node3D" parent="." unique_id=1330444715]
 script = ExtResource("5_spells")
 
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=1347818191]
@@ -70,7 +97,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 32
 
-[node name="MinimapFrame" type="TextureRect" parent="DebugOverlay"]
+[node name="MinimapFrame" type="TextureRect" parent="DebugOverlay" unique_id=264484750]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -83,9 +110,11 @@ texture = ExtResource("6_mapframe")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Minimap" type="TextureRect" parent="DebugOverlay/MinimapFrame"]
+[node name="Minimap" type="TextureRect" parent="DebugOverlay/MinimapFrame" unique_id=994431927]
+self_modulate = Color(1, 1, 1, 0.94)
 show_behind_parent = true
-anchors_preset = 15
+material = SubResource("ShaderMaterial_mapmask")
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 45.0
@@ -94,22 +123,20 @@ offset_right = -45.0
 offset_bottom = -45.0
 grow_horizontal = 2
 grow_vertical = 2
-material = SubResource("ShaderMaterial_mapmask")
 texture = ExtResource("4_minimap")
 expand_mode = 1
 stretch_mode = 5
-self_modulate = Color(1, 1, 1, 0.94)
 
-[node name="ArrowBlip" type="Polygon2D" parent="DebugOverlay/MinimapFrame/Minimap"]
+[node name="ArrowBlip" type="Polygon2D" parent="DebugOverlay/MinimapFrame/Minimap" unique_id=397267618]
 color = Color(1, 0.32, 0.62, 1)
 polygon = PackedVector2Array(0, -14, 10, 10, 0, 5, -10, 10)
 
-[node name="BlipOutline" type="Polygon2D" parent="DebugOverlay/MinimapFrame/Minimap/ArrowBlip"]
+[node name="BlipOutline" type="Polygon2D" parent="DebugOverlay/MinimapFrame/Minimap/ArrowBlip" unique_id=56165105]
 show_behind_parent = true
 color = Color(0.05, 0.02, 0.08, 0.9)
 polygon = PackedVector2Array(0, -19, 14, 14, 0, 8, -14, 14)
 
-[node name="FlashRect" type="ColorRect" parent="DebugOverlay"]
+[node name="FlashRect" type="ColorRect" parent="DebugOverlay" unique_id=1659575192]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -118,7 +145,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.85, 0.92, 1, 0)
 
-[node name="BoltButton" type="Button" parent="DebugOverlay"]
+[node name="BoltButton" type="Button" parent="DebugOverlay" unique_id=2052726452]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -127,11 +154,11 @@ offset_top = -250.0
 offset_right = 190.0
 offset_bottom = -150.0
 grow_vertical = 0
-theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(0.62, 0.78, 1, 1)
+theme_override_font_sizes/font_size = 36
 text = "BOLT"
 
-[node name="FireButton" type="Button" parent="DebugOverlay"]
+[node name="FireButton" type="Button" parent="DebugOverlay" unique_id=1419713816]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -140,8 +167,8 @@ offset_top = -130.0
 offset_right = 190.0
 offset_bottom = -30.0
 grow_vertical = 0
-theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(1, 0.72, 0.35, 1)
+theme_override_font_sizes/font_size = 36
 text = "FIRE"
 
 [node name="MsgLabel" type="Label" parent="DebugOverlay" unique_id=1884031911]
