@@ -16,12 +16,15 @@ import traceback
 
 import bpy
 
-SRC_CANDIDATES = [
-    "/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend",
-    "/Users/michellepaulson/gauntlet/assets/src/inferno_world.blend",
-    "/Users/michellepaulson/gauntlet/assets/inferno_world.blend",
+# first existing source wins; the destination GLB follows it
+SRC_DST = [
+    ("/Users/michellepaulson/gauntlet/assets/src/pirate_world.blend",
+     "/Users/michellepaulson/gauntlet/assets/pirate_baked.glb"),
+    ("/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend",
+     "/Users/michellepaulson/gauntlet/assets/inferno_baked.glb"),
+    ("/Users/michellepaulson/gauntlet/assets/src/inferno_world.blend",
+     "/Users/michellepaulson/gauntlet/assets/inferno_baked.glb"),
 ]
-DST_GLB = "/Users/michellepaulson/gauntlet/assets/inferno_baked.glb"
 CELL = 48.0
 
 # surfaces the player walks on -> merged with -col (trimesh collision)
@@ -34,6 +37,15 @@ DECIMATE_PREFIXES = ("Grass", "Bush", "Crag", "Rock", "Stone", "GoldPile", "Coal
 # perimeter terrain the player can stand on -> decor decimation but WITH
 # collision (-col), so spawning/walking on the map edge doesn't fall through
 CLIFF_PREFIXES = ("Cliff",)
+
+# Synty SM_* packs (pirates) bury the meaning mid-name, so these are
+# full-name substring rules that extend the prefix lists above
+WALKABLE_TOKENS = ("SM_Bld", "_Env_Beach", "_Env_Tile", "_Env_Flat_Sand")
+CLIFF_TOKENS = ("_Env_Rock", "_Env_Mangrove_Roots")
+DECIMATE_TOKENS = ("_Env_", "_Item_", "_Flag_")
+KILL_LIQUIDS = ("Lava", "Ocean", "Water")  # all of them consume liquidity
+# (kill planes are renamed Lava_XX-col in the bake, so player.gd's
+#  existing "Lava" collider check covers every liquid)
 DECIMATE_RATIO = 0.35
 MAX_TEX = 1024          # color atlases capped at this
 MAX_NORMAL_TEX = 256    # normal maps barely read at this art style
@@ -119,9 +131,10 @@ def patch_stair_cracks():
 
 
 def main():
-    src = next((p for p in SRC_CANDIDATES if os.path.exists(p)), None)
+    src, dst_glb = next(((s, d) for s, d in SRC_DST if os.path.exists(s)),
+                        (None, None))
     if src is None:
-        raise RuntimeError("no inferno_world.blend found")
+        raise RuntimeError("no world blend found")
     bpy.ops.wm.open_mainfile(filepath=src)
     stats = {"src": src}
     stats["objects_before"] = len(bpy.data.objects)
@@ -185,10 +198,11 @@ def main():
             keep_alone.append(ob)
             continue
         p = prefix_of(ob.name)
-        if p == "Lava" and max(ob.dimensions.x, ob.dimensions.y) > 300:
+        if (any(k in ob.name for k in KILL_LIQUIDS)
+                and max(ob.dimensions.x, ob.dimensions.y) > 80):
             lava_planes.append(ob)
             continue
-        if p == "Sky":
+        if p == "Sky" or "SkyDome" in ob.name:
             keep_alone.append(ob)
             continue
         # candle stations (and ALL their sub-parts, whatever they're named)
@@ -211,11 +225,14 @@ def main():
             keep_alone.append(ob)
             continue
         mat = ob.data.materials[0].name if ob.data.materials and ob.data.materials[0] else "none"
-        if any(p.startswith(c) for c in CLIFF_PREFIXES):
+        if (any(p.startswith(c) for c in CLIFF_PREFIXES)
+                or any(t in ob.name for t in CLIFF_TOKENS)):
             kind = "cliff"
-        elif any(p.startswith(w) for w in WALKABLE_PREFIXES):
+        elif (any(p.startswith(w) for w in WALKABLE_PREFIXES)
+                or any(t in ob.name for t in WALKABLE_TOKENS)):
             kind = "walk"
-        elif any(p.startswith(d) for d in DECIMATE_PREFIXES):
+        elif (any(p.startswith(d) for d in DECIMATE_PREFIXES)
+                or any(t in ob.name for t in DECIMATE_TOKENS)):
             kind = "dec"
         else:
             kind = "misc"
@@ -324,8 +341,8 @@ def main():
 
     for _ in range(3):
         bpy.data.orphans_purge(do_recursive=True)
-    bpy.ops.export_scene.gltf(filepath=DST_GLB, export_format="GLB")
-    stats["saved"] = DST_GLB
+    bpy.ops.export_scene.gltf(filepath=dst_glb, export_format="GLB")
+    stats["saved"] = dst_glb
     print("BAKE_RESULT " + json.dumps(stats))
 
 

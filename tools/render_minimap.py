@@ -5,12 +5,19 @@ Run after world edits change the landscape (new districts, candles, etc.):
         --python tools/render_minimap.py
 Writes assets/ui/minimap.png. ORTHO must match Balance.MINIMAP_WORLD_SIZE.
 """
+import os
+
 import bpy
 from mathutils import Vector
 
 ORTHO = 460.0  # world meters covered; keep in sync with Balance.MINIMAP_WORLD_SIZE
 
-bpy.ops.wm.open_mainfile(filepath="/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend")
+SRC_CANDIDATES = [
+    "/Users/michellepaulson/gauntlet/assets/src/pirate_world.blend",
+    "/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend",
+]
+bpy.ops.wm.open_mainfile(filepath=next(
+        p for p in SRC_CANDIDATES if os.path.exists(p)))
 scene = bpy.context.scene
 cam = bpy.data.objects.new("MapCam", bpy.data.cameras.new("MapCam"))
 cam.data.type = "ORTHO"
