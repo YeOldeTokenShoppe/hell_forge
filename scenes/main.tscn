@@ -29,16 +29,20 @@ sky_material = SubResource("ProceduralSkyMaterial_synty")
 
 [sub_resource type="Environment" id="Environment_hell"]
 background_mode = 2
+background_color = Color(0.06, 0.03, 0.05, 1)
 sky = SubResource("Sky_synty")
 ambient_light_source = 2
 ambient_light_color = Color(0.88173205, 0.87048626, 0.8697554, 1)
 ambient_light_energy = 1.06
 reflected_light_source = 1
+tonemap_mode = 0
 tonemap_exposure = 1.18
 glow_enabled = true
 glow_intensity = 0.8
 glow_bloom = 0.1
 glow_hdr_threshold = 1.05
+fog_light_color = Color(0.32, 0.11, 0.09, 1)
+fog_density = 0.012
 adjustment_enabled = true
 adjustment_brightness = 0.92
 adjustment_contrast = 0.95
@@ -63,11 +67,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 8, 17)
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=37491022]
 environment = SubResource("Environment_hell")
 
-[node name="SunKey" type="DirectionalLight3D" parent="."]
+[node name="SunKey" type="DirectionalLight3D" parent="." unique_id=1703560018]
 transform = Transform3D(-0.3811428, 0.8918751, -0.24349302, -0.4249592, 0.06489218, 0.9028835, 0.82106024, 0.44760224, 0.35427737, -56.8, 114.3541, 35)
 light_color = Color(0.9717136, 0.9597489, 0.90673274, 1)
 light_energy = 0.9
-shadow_enabled = true
 shadow_bias = 7.133
 shadow_normal_bias = 5.591
 shadow_transmittance_bias = -5.72
@@ -78,7 +81,7 @@ directional_shadow_split_2 = 0.167
 directional_shadow_max_distance = 45.0
 directional_shadow_pancake_size = 39.5
 
-[node name="SunFill" type="DirectionalLight3D" parent="."]
+[node name="SunFill" type="DirectionalLight3D" parent="." unique_id=1354778794]
 transform = Transform3D(0.34228796, -0.93206215, -0.11874136, 0.46826586, 0.059655692, 0.88157153, -0.8145957, -0.35735387, 0.45687222, -56.8, 114.3541, 35)
 light_color = Color(0.9717136, 0.9597489, 0.90673274, 1)
 light_energy = 0.4
