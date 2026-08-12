@@ -61,6 +61,9 @@ func _ready() -> void:
 	_candles = Candles.new()
 	add_child(_candles)
 	_candles.setup(_level)
+	var doors := Doors.new()
+	add_child(doors)
+	doors.setup(_level, _player, _overlay)
 	if _candles.total() > 0:
 		_spells.exploded.connect(_candles.on_explosion)
 		_candles.candle_lit.connect(_on_candle_lit)
