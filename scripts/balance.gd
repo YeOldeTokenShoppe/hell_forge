@@ -19,8 +19,10 @@ const KEY_TURN_RATE: float = 2.6        # radians/second for A/D key turning
 const HAZARDS_LETHAL: bool = false      # experiment 2026-08-07: pilgrimage mode —
 										# obstacles are scenery; falls still respawn
 const MINIMAP_WORLD_SIZE: float = 460.0 # world meters covered by assets/ui/minimap.png
-const FOG_GROUND_DENSITY: float = 0.012 # ember murk during ground-level play
+# provisional pirate-island values (sea-level world) — the inferno ran
+# 0.012 ground density with the fade at 30-52 m; regrade with the theme
+const FOG_GROUND_DENSITY: float = 0.005 # haze during ground-level play
 const FOG_VISTA_DENSITY: float = 0.0012 # thin haze from high vantage points
-const FOG_CLEAR_START_Y: float = 30.0   # camera height where fog starts thinning
-const FOG_CLEAR_END_Y: float = 52.0     # camera height of full vista clarity
+const FOG_CLEAR_START_Y: float = 0.0    # camera height where fog starts thinning
+const FOG_CLEAR_END_Y: float = 30.0     # camera height of full vista clarity
 										# (must match ORTHO in the map render script)

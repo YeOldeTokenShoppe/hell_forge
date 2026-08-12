@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://or87vj0g3vlw"]
 
-[ext_resource type="PackedScene" path="res://assets/inferno_baked.glb" id="1_level"]
+[ext_resource type="PackedScene" path="res://assets/pirate_baked.glb" id="1_level"]
 [ext_resource type="Script" uid="uid://c2urpxxca80wk" path="res://scripts/main.gd" id="2_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
 [ext_resource type="Texture2D" path="res://assets/ui/minimap.png" id="4_minimap"]

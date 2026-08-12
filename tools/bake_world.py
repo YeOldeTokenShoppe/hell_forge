@@ -42,7 +42,7 @@ CLIFF_PREFIXES = ("Cliff",)
 # full-name substring rules that extend the prefix lists above
 WALKABLE_TOKENS = ("SM_Bld", "_Env_Beach", "_Env_Tile", "_Env_Flat_Sand")
 CLIFF_TOKENS = ("_Env_Rock", "_Env_Mangrove_Roots")
-DECIMATE_TOKENS = ("_Env_", "_Item_", "_Flag_")
+DECIMATE_TOKENS = ("_Env_", "_Item_", "_Flag_", "SM_Veh")
 KILL_LIQUIDS = ("Lava", "Ocean", "Water")  # all of them consume liquidity
 # (kill planes are renamed Lava_XX-col in the bake, so player.gd's
 #  existing "Lava" collider check covers every liquid)
@@ -149,6 +149,17 @@ def main():
             me.attributes.remove(attr)
             stripped += 1
     stats["custom_normals_stripped"] = stripped
+
+    # flat-color atlas needs neither vertex colors nor extra UV sets —
+    # the pirates meshes carry both, nearly doubling per-vertex cost
+    colors_stripped = 0
+    for me in bpy.data.meshes:
+        for attr in list(me.color_attributes):
+            me.color_attributes.remove(attr)
+            colors_stripped += 1
+        while len(me.uv_layers) > 1:
+            me.uv_layers.remove(me.uv_layers[-1])
+    stats["color_attrs_stripped"] = colors_stripped
 
     # --- texture diet: the web build ships these ---
     tex_changed = 0
@@ -271,7 +282,7 @@ def main():
 
     # --- decimate merged cells (per-category ratios) ---
     print("PHASE joins_done", flush=True)
-    RATIOS = {"dec": DECIMATE_RATIO, "misc": 0.5, "walk": 0.6,
+    RATIOS = {"dec": DECIMATE_RATIO, "misc": 0.4, "walk": 0.5,
               "cliff": DECIMATE_RATIO}
     for kind, ob in merged:
         ratio = RATIOS.get(kind)
@@ -305,12 +316,16 @@ def main():
     print("PHASE decimates_done", flush=True)
     # --- lava planes: hard decimate + kill-zone collision name ---
     for i, ob in enumerate(lava_planes):
+        if ob.data.users > 1:
+            ob.data = ob.data.copy()  # instanced meshes can't take modifiers
         for o in bpy.data.objects:
             o.select_set(False)
         ob.select_set(True)
         bpy.context.view_layer.objects.active = ob
         mod = ob.modifiers.new("BakeDecimate", "DECIMATE")
-        mod.ratio = 0.15
+        # kill planes are flat color + collision; the pirates sea is a
+        # 1M-tri wave grid that flattens to almost nothing
+        mod.ratio = 0.03
         mod.use_collapse_triangulate = True
         bpy.ops.object.modifier_apply(modifier="BakeDecimate")
         if not ob.name.endswith("-col"):
