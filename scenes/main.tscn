@@ -23,7 +23,7 @@ background_mode = 1
 background_color = Color(0.06, 0.03, 0.05, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.5, 0.45, 0.6, 1)
-ambient_light_energy = 0.9
+ambient_light_energy = 1.1
 tonemap_mode = 2
 glow_enabled = true
 glow_intensity = 0.8
@@ -50,7 +50,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 8, 17)
 environment = SubResource("Environment_hell")
 
 [node name="HellSun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.826, 0.193, -0.528, 0, 0.936, 0.342, 0.564, 0.283, -0.773, 0, 30, -150)
+transform = Transform3D(0.826, -0.193, 0.528, 0, 0.936, 0.342, -0.564, -0.283, 0.773, 0, 30, -150)
 light_color = Color(1, 0.62, 0.32, 1)
 light_energy = 1.0
 
