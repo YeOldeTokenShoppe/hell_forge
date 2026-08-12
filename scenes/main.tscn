@@ -75,12 +75,13 @@ shadow_opacity = 0.85
 shadow_blur = 0.01
 directional_shadow_split_1 = 0.077
 directional_shadow_split_2 = 0.167
+directional_shadow_max_distance = 45.0
 directional_shadow_pancake_size = 39.5
 
 [node name="SunFill" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.34228796, -0.93206215, -0.11874136, 0.46826586, 0.059655692, 0.88157153, -0.8145957, -0.35735387, 0.45687222, -56.8, 114.3541, 35)
 light_color = Color(0.9717136, 0.9597489, 0.90673274, 1)
-light_energy = 0.1
+light_energy = 0.4
 
 [node name="Spells" type="Node3D" parent="." unique_id=1330444715]
 script = ExtResource("5_spells")
