@@ -21,6 +21,7 @@ var _shake_amp: float = 0.0
 var _candles: Candles
 var _piety_label: Label = null
 var _light_hold: float = 0.0  # cooldown between candle-lighting gestures
+var _mouse_idle: float = 999.0  # seconds since the mouse moved (reticle fade)
 
 # aiming reticle: desktop follows the mouse; touch aims by holding a spell
 # button and dragging (up/down = distance, sideways = lateral), release casts
@@ -269,11 +270,12 @@ func _process(delta: float) -> void:
 		_reticle.visible = true
 		_reticle.global_position = _touch_aim_pos() + Vector3(0, 0.08, 0)
 	elif not DisplayServer.is_touchscreen_available() \
-			and _player.state == Player.State.RUNNING:
+			and _player.state == Player.State.RUNNING and _mouse_idle < 1.5:
 		_reticle.visible = true
 		_reticle.global_position = _aim_point(30.0) + Vector3(0, 0.08, 0)
 	else:
 		_reticle.visible = false
+	_mouse_idle += delta
 	# devotional lighting: standing beside an unlit candle triggers the
 	# reach-and-light gesture; the wick catches mid-gesture
 	_light_hold -= delta
@@ -306,6 +308,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if key.pressed and not key.echo and key.keycode == KEY_X:
 			_cast_bolt()
 			return
+	if event is InputEventMouseMotion:
+		_mouse_idle = 0.0  # aiming intent: the reticle wakes on movement
 	# while standing (or in a scripted stop): drag orbits the camera
 	var can_orbit: bool = _player.is_standing() or _player.state == Player.State.STOPPED
 	if event is InputEventScreenDrag and can_orbit:
