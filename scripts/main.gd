@@ -21,7 +21,8 @@ var _shake_amp: float = 0.0
 var _candles: Candles
 var _piety_label: Label = null
 var _light_hold: float = 0.0  # cooldown between candle-lighting gestures
-var _mouse_idle: float = 999.0  # seconds since the mouse moved (reticle fade)
+var _mouse_idle: float = 999.0  # seconds since real mouse travel (reticle fade)
+var _mouse_accum: float = 0.0   # px of recent motion (trackpad noise gate)
 
 # aiming reticle: desktop follows the mouse; touch aims by holding a spell
 # button and dragging (up/down = distance, sideways = lateral), release casts
@@ -270,12 +271,20 @@ func _process(delta: float) -> void:
 		_reticle.visible = true
 		_reticle.global_position = _touch_aim_pos() + Vector3(0, 0.08, 0)
 	elif not DisplayServer.is_touchscreen_available() \
-			and _player.state == Player.State.RUNNING and _mouse_idle < 1.5:
+			and _player.state == Player.State.RUNNING and _mouse_idle < 4.0:
+		# pin-on-move: the aim point is captured when the mouse actually
+		# travels and stays PARKED in world space while you walk; casts
+		# hit the pin (_aim_target). Fades + unpins after 4 s idle.
+		if _mouse_idle < 0.06:
+			_aim_target = _aim_point(30.0)
 		_reticle.visible = true
-		_reticle.global_position = _aim_point(30.0) + Vector3(0, 0.08, 0)
+		_reticle.global_position = _aim_target + Vector3(0, 0.08, 0)
 	else:
 		_reticle.visible = false
+		if not DisplayServer.is_touchscreen_available():
+			_aim_target = Vector3.INF
 	_mouse_idle += delta
+	_mouse_accum = maxf(_mouse_accum - delta * 8.0, 0.0)
 	# devotional lighting: standing beside an unlit candle triggers the
 	# reach-and-light gesture; the wick catches mid-gesture
 	_light_hold -= delta
@@ -309,7 +318,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_cast_bolt()
 			return
 	if event is InputEventMouseMotion:
-		_mouse_idle = 0.0  # aiming intent: the reticle wakes on movement
+		# trackpads emit constant micro-motion; demand real travel before
+		# treating it as aiming intent
+		_mouse_accum += (event as InputEventMouseMotion).relative.length()
+		if _mouse_accum > 4.0:
+			_mouse_accum = 0.0
+			_mouse_idle = 0.0
 	# while standing (or in a scripted stop): drag orbits the camera
 	var can_orbit: bool = _player.is_standing() or _player.state == Player.State.STOPPED
 	if event is InputEventScreenDrag and can_orbit:
