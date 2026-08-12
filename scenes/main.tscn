@@ -41,8 +41,10 @@ glow_enabled = true
 glow_intensity = 0.8
 glow_bloom = 0.1
 glow_hdr_threshold = 1.05
-fog_light_color = Color(0.32, 0.11, 0.09, 1)
-fog_density = 0.012
+fog_enabled = true
+fog_light_color = Color(0.75, 0.8, 0.88, 1)
+fog_density = 0.007
+fog_sky_affect = 0.0
 adjustment_enabled = true
 adjustment_brightness = 0.92
 adjustment_contrast = 0.95
@@ -63,6 +65,7 @@ curve = SubResource("Curve3D_route")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=104972670]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 8, 17)
+far = 300.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=37491022]
 environment = SubResource("Environment_hell")

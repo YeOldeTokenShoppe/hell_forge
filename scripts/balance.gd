@@ -19,10 +19,11 @@ const KEY_TURN_RATE: float = 2.6        # radians/second for A/D key turning
 const HAZARDS_LETHAL: bool = false      # experiment 2026-08-07: pilgrimage mode —
 										# obstacles are scenery; falls still respawn
 const MINIMAP_WORLD_SIZE: float = 460.0 # world meters covered by assets/ui/minimap.png
-# provisional pirate-island values (sea-level world) — the inferno ran
-# 0.012 ground density with the fade at 30-52 m; regrade with the theme
-const FOG_GROUND_DENSITY: float = 0.005 # haze during ground-level play
-const FOG_VISTA_DENSITY: float = 0.0012 # thin haze from high vantage points
-const FOG_CLEAR_START_Y: float = 0.0    # camera height where fog starts thinning
-const FOG_CLEAR_END_Y: float = 30.0     # camera height of full vista clarity
+# sea haze doubles as the perf curtain: it hides the camera's 300 m far
+# clip (geometry past it simply isn't drawn). Keep haze at altitude too,
+# or the cutoff shows from high vantage points.
+const FOG_GROUND_DENSITY: float = 0.007 # sea haze during ground-level play
+const FOG_VISTA_DENSITY: float = 0.004  # still hazy up high (masks far clip)
+const FOG_CLEAR_START_Y: float = 0.0    # camera height where haze starts thinning
+const FOG_CLEAR_END_Y: float = 30.0     # camera height of thinnest haze
 										# (must match ORTHO in the map render script)
