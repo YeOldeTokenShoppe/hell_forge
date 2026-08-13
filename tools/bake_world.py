@@ -331,6 +331,10 @@ def main():
         for ob, slot in items:
             tmp = ob.data.copy()
             tmp.transform(ob.matrix_world)
+            if ob.matrix_world.determinant() < 0:
+                # mirrored placement: baking the transform flips winding,
+                # and Godot backface-culls the whole piece invisible
+                tmp.flip_normals()
             if len(ob.data.materials) > 1:
                 bmt = bmesh.new()
                 bmt.from_mesh(tmp)
