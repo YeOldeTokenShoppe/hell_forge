@@ -10,9 +10,10 @@ import os
 import bpy
 from mathutils import Vector
 
-ORTHO = 1700.0  # world meters covered; keep in sync with Balance.MINIMAP_WORLD_SIZE
+ORTHO = 460.0  # world meters covered; keep in sync with Balance.MINIMAP_WORLD_SIZE
 
 SRC_CANDIDATES = [
+    "/Users/michellepaulson/gauntlet/assets/src/bank_world.blend",
     "/Users/michellepaulson/gauntlet/assets/src/pirate_realm_island.blend",
     "/Users/michellepaulson/gauntlet/assets/src/pirate_world.blend",
     "/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend",

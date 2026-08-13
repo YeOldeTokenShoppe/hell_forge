@@ -18,6 +18,8 @@ import bpy
 
 # first existing source wins; the destination GLB follows it
 SRC_DST = [
+    ("/Users/michellepaulson/gauntlet/assets/src/bank_world.blend",
+     "/Users/michellepaulson/gauntlet/assets/bank_baked.glb"),
     ("/Users/michellepaulson/gauntlet/assets/src/pirate_realm_island.blend",
      "/Users/michellepaulson/gauntlet/assets/archipelago_baked.glb"),
     ("/Users/michellepaulson/gauntlet/assets/src/pirate_world.blend",
@@ -43,6 +45,9 @@ CLIFF_PREFIXES = ("Cliff",)
 # Synty SM_* packs (pirates) bury the meaning mid-name, so these are
 # full-name substring rules that extend the prefix lists above
 WALKABLE_TOKENS = ("SM_Bld", "_Env_Beach", "_Env_Tile", "_Env_Flat_Sand")
+# cutout fabric reads as air but was colliding: keep it decorative
+NO_COLLISION_TOKENS = ("Awning", "Netting", "Sail", "Flag", "Rope",
+                       "ClothesLine", "StallCover", "Stall_Cloth")
 CLIFF_TOKENS = ("_Env_Rock", "_Env_Mangrove_Roots")
 DECIMATE_TOKENS = ("_Env_", "_Item_", "_Flag_", "SM_Veh")
 KILL_LIQUIDS = ("Lava", "Ocean", "Water")  # all of them consume liquidity
@@ -277,7 +282,9 @@ def main():
             keep_alone.append(ob)
             continue
         mat = ob.data.materials[0].name if ob.data.materials and ob.data.materials[0] else "none"
-        if (any(p.startswith(c) for c in CLIFF_PREFIXES)
+        if any(t in ob.name for t in NO_COLLISION_TOKENS):
+            kind = "dec"
+        elif (any(p.startswith(c) for c in CLIFF_PREFIXES)
                 or any(t in ob.name for t in CLIFF_TOKENS)):
             kind = "cliff"
         elif (any(p.startswith(w) for w in WALKABLE_PREFIXES)
