@@ -193,8 +193,13 @@ def main():
         for attr in list(me.color_attributes):
             me.color_attributes.remove(attr)
             colors_stripped += 1
-        while len(me.uv_layers) > 1:
-            me.uv_layers.remove(me.uv_layers[-1])
+        if len(me.uv_layers) > 1:
+            # keep the layer Blender actually RENDERS with — index 0 can
+            # be a lightmap set (full-atlas smear in game if exported)
+            keep = next((l.name for l in me.uv_layers if l.active_render),
+                        me.uv_layers[0].name)
+            for l in [l for l in me.uv_layers if l.name != keep]:
+                me.uv_layers.remove(l)
     stats["color_attrs_stripped"] = colors_stripped
 
     # --- texture diet: the web build ships these ---
