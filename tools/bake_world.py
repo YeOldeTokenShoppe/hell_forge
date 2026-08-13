@@ -240,7 +240,15 @@ def main():
     import re as _re
     lod_removed = 0
     for ob in list(bpy.data.objects):
-        if ob.type == "MESH" and _re.search(r"_LOD[1-9]", ob.name):
+        if ob.type != "MESH" or not _re.search(r"_LOD[1-9]", ob.name):
+            continue
+        # only drop an LOD1+ object when its LOD0 twin exists under the
+        # SAME parent — hand-placed standalone LOD copies are real content
+        parent = ob.parent
+        has_lod0_twin = parent is not None and any(
+            c is not ob and c.type == "MESH" and "_LOD0" in c.name
+            for c in parent.children)
+        if has_lod0_twin:
             bpy.data.objects.remove(ob, do_unlink=True)
             lod_removed += 1
     stats["lod_meshes_removed"] = lod_removed
