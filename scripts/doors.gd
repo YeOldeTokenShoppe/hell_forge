@@ -25,7 +25,8 @@ func setup(level: Node3D, player: Node3D, overlay: CanvasLayer) -> void:
 		if parts.size() < 3:
 			continue
 		var route: String = parts[1]
-		ends.setdefault(route, {})
+		if not ends.has(route):
+			ends[route] = {}
 		ends[route][parts[2].to_upper()] = node
 	for route: String in ends:
 		if ends[route].has("A") and ends[route].has("B"):
