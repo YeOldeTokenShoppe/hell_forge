@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjlp4tmrdxv46"
-path="res://.godot/imported/bank_baked_Wood_Shack_01.png-5425071066888a71bdd1b544ca356597.ctex"
+path.s3tc="res://.godot/imported/bank_baked_Wood_Shack_01.png-5425071066888a71bdd1b544ca356597.s3tc.ctex"
+path.etc2="res://.godot/imported/bank_baked_Wood_Shack_01.png-5425071066888a71bdd1b544ca356597.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b5850a2700b9e32da61d291741d7010c"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/bank_baked_Wood_Shack_01.png"
-dest_files=["res://.godot/imported/bank_baked_Wood_Shack_01.png-5425071066888a71bdd1b544ca356597.ctex"]
+dest_files=["res://.godot/imported/bank_baked_Wood_Shack_01.png-5425071066888a71bdd1b544ca356597.s3tc.ctex", "res://.godot/imported/bank_baked_Wood_Shack_01.png-5425071066888a71bdd1b544ca356597.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

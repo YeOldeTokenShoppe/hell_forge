@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bwm6guopot1lb"
-path="res://.godot/imported/bank_baked_PolygonPirateRealm_01_A.png-2552d17fa78982350102869dd148a772.ctex"
+path.s3tc="res://.godot/imported/bank_baked_PolygonPirateRealm_01_A.png-2552d17fa78982350102869dd148a772.s3tc.ctex"
+path.etc2="res://.godot/imported/bank_baked_PolygonPirateRealm_01_A.png-2552d17fa78982350102869dd148a772.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "a568d3f19bfd39f8291fe02ddd1394fc"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/bank_baked_PolygonPirateRealm_01_A.png"
-dest_files=["res://.godot/imported/bank_baked_PolygonPirateRealm_01_A.png-2552d17fa78982350102869dd148a772.ctex"]
+dest_files=["res://.godot/imported/bank_baked_PolygonPirateRealm_01_A.png-2552d17fa78982350102869dd148a772.s3tc.ctex", "res://.godot/imported/bank_baked_PolygonPirateRealm_01_A.png-2552d17fa78982350102869dd148a772.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

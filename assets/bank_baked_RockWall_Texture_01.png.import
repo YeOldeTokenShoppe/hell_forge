@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c0umenh32jm2s"
-path="res://.godot/imported/bank_baked_RockWall_Texture_01.png-fddb3ce3c880eb96f8806f2f5d294326.ctex"
+path.s3tc="res://.godot/imported/bank_baked_RockWall_Texture_01.png-fddb3ce3c880eb96f8806f2f5d294326.s3tc.ctex"
+path.etc2="res://.godot/imported/bank_baked_RockWall_Texture_01.png-fddb3ce3c880eb96f8806f2f5d294326.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "4a31ab8e89c5eb6ab7b844a488fcb9d9"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/bank_baked_RockWall_Texture_01.png"
-dest_files=["res://.godot/imported/bank_baked_RockWall_Texture_01.png-fddb3ce3c880eb96f8806f2f5d294326.ctex"]
+dest_files=["res://.godot/imported/bank_baked_RockWall_Texture_01.png-fddb3ce3c880eb96f8806f2f5d294326.s3tc.ctex", "res://.godot/imported/bank_baked_RockWall_Texture_01.png-fddb3ce3c880eb96f8806f2f5d294326.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
