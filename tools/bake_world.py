@@ -456,6 +456,10 @@ def main():
             m["alphaMode"] = "MASK"
             m["alphaCutoff"] = 0.5
             masked += 1
+        # Synty models plenty of single-sided geometry that its Unity
+        # shaders render two-sided; Godot culls it into holes. Cheap at
+        # this triangle budget to just disable culling everywhere.
+        m["doubleSided"] = True
     payload = json.dumps(gltf_json, separators=(",", ":")).encode()
     payload += b" " * ((4 - len(payload) % 4) % 4)
     with open(dst_glb, "wb") as f:
