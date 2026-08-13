@@ -152,6 +152,35 @@ def main():
             stripped += 1
     stats["custom_normals_stripped"] = stripped
 
+    # the glTF exporter can't trace math-gated alpha chains (viewport-only
+    # clip trick): rewire tex.Alpha directly to BSDF.Alpha and declare
+    # CLIP so foliage/fabric export as alphaMode=MASK instead of opaque
+    alpha_fixed = 0
+    for mat in bpy.data.materials:
+        if not mat.use_nodes:
+            continue
+        bsdf = next((n for n in mat.node_tree.nodes
+                     if n.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None or not bsdf.inputs["Alpha"].is_linked:
+            continue
+        link = bsdf.inputs["Alpha"].links[0]
+        if link.from_node.type == "MATH":
+            gate = link.from_node
+            src = (gate.inputs[0].links[0].from_socket
+                   if gate.inputs[0].is_linked else None)
+            mat.node_tree.links.remove(link)
+            if src is not None:
+                mat.node_tree.links.new(src, bsdf.inputs["Alpha"])
+        for attr, val in (("blend_method", "CLIP"),
+                          ("alpha_threshold", 0.5),
+                          ("surface_render_method", "DITHERED")):
+            try:
+                setattr(mat, attr, val)
+            except (AttributeError, TypeError):
+                pass
+        alpha_fixed += 1
+    stats["alpha_clip_materials"] = alpha_fixed
+
     # flat-color atlas needs neither vertex colors nor extra UV sets —
     # the pirates meshes carry both, nearly doubling per-vertex cost
     colors_stripped = 0
@@ -369,6 +398,32 @@ def main():
     for _ in range(3):
         bpy.data.orphans_purge(do_recursive=True)
     bpy.ops.export_scene.gltf(filepath=dst_glb, export_format="GLB")
+
+    # the exporter writes textured cutout materials as BLEND (sorted,
+    # flickery, slow) — patch them to MASK in the GLB json; untextured
+    # translucents (glass) keep BLEND
+    import struct
+    with open(dst_glb, "rb") as f:
+        magic, version, _total = struct.unpack("<4sII", f.read(12))
+        jlen, jtype = struct.unpack("<I4s", f.read(8))
+        gltf_json = json.loads(f.read(jlen))
+        rest = f.read()
+    masked = 0
+    for m in gltf_json.get("materials", []):
+        pbr = m.get("pbrMetallicRoughness", {})
+        if m.get("alphaMode") == "BLEND" and "baseColorTexture" in pbr:
+            m["alphaMode"] = "MASK"
+            m["alphaCutoff"] = 0.5
+            masked += 1
+    payload = json.dumps(gltf_json, separators=(",", ":")).encode()
+    payload += b" " * ((4 - len(payload) % 4) % 4)
+    with open(dst_glb, "wb") as f:
+        f.write(struct.pack("<4sII", magic, version,
+                            12 + 8 + len(payload) + len(rest)))
+        f.write(struct.pack("<I4s", len(payload), jtype))
+        f.write(payload)
+        f.write(rest)
+    stats["alpha_masked_in_glb"] = masked
     stats["saved"] = dst_glb
     print("BAKE_RESULT " + json.dumps(stats))
 
