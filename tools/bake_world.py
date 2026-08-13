@@ -200,6 +200,10 @@ def main():
                         me.uv_layers[0].name)
             for l in [l for l in me.uv_layers if l.name != keep]:
                 me.uv_layers.remove(l)
+        if me.uv_layers:
+            # one shared name: bmesh merges match UV layers BY NAME, and
+            # mixed names silently drop coordinates for half the faces
+            me.uv_layers[0].name = "UVMap"
     stats["color_attrs_stripped"] = colors_stripped
 
     # --- texture diet: the web build ships these ---
