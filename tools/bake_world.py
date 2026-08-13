@@ -375,7 +375,7 @@ def main():
     # walk = architecture the player studies up close: decimation tears
     # slivers along curved trim (bitten arches). Skip it — the bank-scale
     # world has tri budget to spare. Decor/misc keep gentle reduction.
-    RATIOS = {"dec": 0.5, "misc": 0.6, "walk": None,
+    RATIOS = {"dec": DECIMATE_RATIO, "misc": 0.4, "walk": None,
               "cliff": DECIMATE_RATIO}
     for kind, ob in merged:
         ratio = RATIOS.get(kind)
