@@ -290,7 +290,6 @@ def main():
                 ob.name += "-col"
             keep_alone.append(ob)
             continue
-        mat = ob.data.materials[0].name if ob.data.materials and ob.data.materials[0] else "none"
         if any(t in ob.name for t in NO_COLLISION_TOKENS):
             kind = "dec"
         elif (any(p.startswith(c) for c in CLIFF_PREFIXES)
@@ -305,26 +304,46 @@ def main():
         else:
             kind = "misc"
         loc = ob.matrix_world.translation
-        key = (kind, mat,
-               int((loc.x + 2000) // CELL), int((loc.y + 2000) // CELL))
-        groups.setdefault(key, []).append(ob)
+        cx = int((loc.x + 2000) // CELL)
+        cy = int((loc.y + 2000) // CELL)
+        # one group entry PER MATERIAL SLOT: merging whole multi-material
+        # objects under their first slot repaints slot-2+ faces with the
+        # wrong texture (and turns walls glass when slot 1 is glass)
+        n_slots = max(1, len(ob.data.materials))
+        for slot in range(n_slots):
+            mat_block = (ob.data.materials[slot]
+                         if slot < len(ob.data.materials) else None)
+            mat = mat_block.name if mat_block else "none"
+            groups.setdefault((kind, mat, cx, cy), []).append((ob, slot))
 
     # --- merge each group into one object (raw bmesh; bpy.ops.object.join
     # hits an int32-overflow crash in Blender 5.1 on this scene) ---
     print(f"PHASE classify_done groups={len(groups)}", flush=True)
     import bmesh
     merged = []
+    consumed = set()
     scene_coll = bpy.context.scene.collection
-    for (kind, mat, cx, cy), objs in groups.items():
+    for (kind, mat, cx, cy), items in groups.items():
         name = f"bk_{kind}_{mat[:12]}_{cx}_{cy}"
         if kind in ("walk", "cliff"):
             name += "-col"
         bm = bmesh.new()
-        for ob in objs:
+        for ob, slot in items:
             tmp = ob.data.copy()
             tmp.transform(ob.matrix_world)
+            if len(ob.data.materials) > 1:
+                bmt = bmesh.new()
+                bmt.from_mesh(tmp)
+                doomed = [f for f in bmt.faces if f.material_index != slot]
+                bmesh.ops.delete(bmt, geom=doomed, context="FACES")
+                bmt.to_mesh(tmp)
+                bmt.free()
             bm.from_mesh(tmp)
             bpy.data.meshes.remove(tmp)
+            consumed.add(ob.name)
+        if len(bm.faces) == 0:
+            bm.free()
+            continue
         new_me = bpy.data.meshes.new(name)
         bm.to_mesh(new_me)
         bm.free()
@@ -333,9 +352,11 @@ def main():
             new_me.materials.append(mat_block)
         new_ob = bpy.data.objects.new(name, new_me)
         scene_coll.objects.link(new_ob)
-        for ob in objs:
-            bpy.data.objects.remove(ob, do_unlink=True)
         merged.append((kind, new_ob))
+    for ob_name in consumed:
+        ob = bpy.data.objects.get(ob_name)
+        if ob is not None:
+            bpy.data.objects.remove(ob, do_unlink=True)
 
     # --- decimate merged cells (per-category ratios) ---
     print("PHASE joins_done", flush=True)
