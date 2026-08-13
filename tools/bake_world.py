@@ -18,6 +18,8 @@ import bpy
 
 # first existing source wins; the destination GLB follows it
 SRC_DST = [
+    ("/Users/michellepaulson/gauntlet/assets/src/pirate_realm_island.blend",
+     "/Users/michellepaulson/gauntlet/assets/archipelago_baked.glb"),
     ("/Users/michellepaulson/gauntlet/assets/src/pirate_world.blend",
      "/Users/michellepaulson/gauntlet/assets/pirate_baked.glb"),
     ("/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend",
@@ -189,6 +191,16 @@ def main():
             bpy.data.objects.remove(ob, do_unlink=True)
             removed += 1
     stats["helpers_removed"] = removed
+
+    # Unity LOD chains: we have no LOD switching, so every level renders
+    # at once — keep LOD0, drop the rest
+    import re as _re
+    lod_removed = 0
+    for ob in list(bpy.data.objects):
+        if ob.type == "MESH" and _re.search(r"_LOD[1-9]", ob.name):
+            bpy.data.objects.remove(ob, do_unlink=True)
+            lod_removed += 1
+    stats["lod_meshes_removed"] = lod_removed
     if bpy.context.scene.world:
         bpy.context.scene.world = None
     print("PHASE helpers_done", flush=True)

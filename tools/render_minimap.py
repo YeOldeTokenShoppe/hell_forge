@@ -10,9 +10,10 @@ import os
 import bpy
 from mathutils import Vector
 
-ORTHO = 460.0  # world meters covered; keep in sync with Balance.MINIMAP_WORLD_SIZE
+ORTHO = 1700.0  # world meters covered; keep in sync with Balance.MINIMAP_WORLD_SIZE
 
 SRC_CANDIDATES = [
+    "/Users/michellepaulson/gauntlet/assets/src/pirate_realm_island.blend",
     "/Users/michellepaulson/gauntlet/assets/src/pirate_world.blend",
     "/Users/michellepaulson/gauntlet/assets/src/inferno_world_v2.blend",
 ]
@@ -24,6 +25,7 @@ cam.data.type = "ORTHO"
 cam.data.ortho_scale = ORTHO
 cam.location = Vector((0, 0, 500))
 cam.rotation_euler = (0, 0, 0)
+cam.data.clip_end = 2000.0
 scene.collection.objects.link(cam)
 scene.camera = cam
 sun = bpy.data.objects.new("MapSun", bpy.data.lights.new("MapSun", "SUN"))

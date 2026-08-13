@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://or87vj0g3vlw"]
 
-[ext_resource type="PackedScene" uid="uid://o0dfgt3xy7cv" path="res://assets/pirate_baked.glb" id="1_level"]
+[ext_resource type="PackedScene" path="res://assets/archipelago_baked.glb" id="1_level"]
 [ext_resource type="Script" uid="uid://c2urpxxca80wk" path="res://scripts/main.gd" id="2_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
 [ext_resource type="Texture2D" uid="uid://vgi1tvvyow8q" path="res://assets/ui/minimap.png" id="4_minimap"]
@@ -35,7 +35,6 @@ ambient_light_source = 2
 ambient_light_color = Color(0.88173205, 0.87048626, 0.8697554, 1)
 ambient_light_energy = 1.06
 reflected_light_source = 1
-tonemap_mode = 0
 tonemap_exposure = 1.18
 glow_enabled = true
 glow_intensity = 0.8
@@ -73,7 +72,9 @@ environment = SubResource("Environment_hell")
 [node name="SunKey" type="DirectionalLight3D" parent="." unique_id=1703560018]
 transform = Transform3D(-0.3811428, 0.8918751, -0.24349302, -0.4249592, 0.06489218, 0.9028835, 0.82106024, 0.44760224, 0.35427737, -56.8, 114.3541, 35)
 light_color = Color(0.9717136, 0.9597489, 0.90673274, 1)
-light_energy = 0.9
+light_energy = 0.108
+light_indirect_energy = 0.604
+light_volumetric_fog_energy = 0.446
 shadow_bias = 7.133
 shadow_normal_bias = 5.591
 shadow_transmittance_bias = -5.72
@@ -88,6 +89,8 @@ directional_shadow_pancake_size = 39.5
 transform = Transform3D(0.34228796, -0.93206215, -0.11874136, 0.46826586, 0.059655692, 0.88157153, -0.8145957, -0.35735387, 0.45687222, -56.8, 114.3541, 35)
 light_color = Color(0.9717136, 0.9597489, 0.90673274, 1)
 light_energy = 0.4
+light_indirect_energy = 0.366
+light_volumetric_fog_energy = 0.208
 
 [node name="Spells" type="Node3D" parent="." unique_id=1330444715]
 script = ExtResource("5_spells")

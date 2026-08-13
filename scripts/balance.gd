@@ -18,7 +18,7 @@ const STEER_SENSITIVITY: float = 0.006  # radians of turn per pixel of finger sl
 const KEY_TURN_RATE: float = 2.6        # radians/second for A/D key turning
 const HAZARDS_LETHAL: bool = false      # experiment 2026-08-07: pilgrimage mode —
 										# obstacles are scenery; falls still respawn
-const MINIMAP_WORLD_SIZE: float = 460.0 # world meters covered by assets/ui/minimap.png
+const MINIMAP_WORLD_SIZE: float = 1700.0 # world meters covered by assets/ui/minimap.png
 # sea haze doubles as the perf curtain: it hides the camera's 300 m far
 # clip (geometry past it simply isn't drawn). Keep haze at altitude too,
 # or the cutoff shows from high vantage points.
