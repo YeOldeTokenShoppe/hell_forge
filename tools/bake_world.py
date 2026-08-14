@@ -463,13 +463,24 @@ def main():
         jlen, jtype = struct.unpack("<I4s", f.read(8))
         gltf_json = json.loads(f.read(jlen))
         rest = f.read()
+    CUTOUT_FAMILIES = (
+        "leaf", "palm", "tree_mat", "bushy", "card_", "ivy", "fern",
+        "awning", "netting", "sail", "flag", "clover", "grass", "flower",
+        "creeper", "groundcover", "branches", "vine", "pohutukawa",
+        "alphas")
     masked = 0
     for m in gltf_json.get("materials", []):
         pbr = m.get("pbrMetallicRoughness", {})
-        if m.get("alphaMode") == "BLEND" and "baseColorTexture" in pbr:
+        mname = m.get("name", "").lower()
+        if "baseColorTexture" in pbr and m.get("alphaMode") != "MASK" \
+                and (m.get("alphaMode") == "BLEND"
+                     or any(f in mname for f in CUTOUT_FAMILIES)):
             m["alphaMode"] = "MASK"
             m["alphaCutoff"] = 0.5
             masked += 1
+        if "glass_opaque" in mname:
+            m["alphaMode"] = "OPAQUE"
+            m.pop("alphaCutoff", None)
         # Synty models plenty of single-sided geometry that its Unity
         # shaders render two-sided; Godot culls it into holes. Cheap at
         # this triangle budget to just disable culling everywhere.
